@@ -546,8 +546,7 @@
 4. 完成激活</p>
 <h2>🐧 Linux (Ubuntu) 激活方法</h2>
 <h3>安装 PyCharm</h3>
-
-<pre><code># 从官网下载 PyCharm 专业版（以 2025.1 为例）
+<pre class="codehilite"><code class="language-bash"># 从官网下载 PyCharm 专业版（以 2025.1 为例）
 # 解压到 ~/apps 目录（自定义路径）
 tar -zxvf pycharm-2025.1.3.tar.gz -C ~/apps/
 
@@ -564,15 +563,13 @@ sudo ln -s ~/apps/pycharm-2025.1.3/bin/pycharm.sh /usr/local/bin/pycharm
 </ol>
 <h2>🔧 高级配置（可选）</h2>
 <h3>定位 VM 选项文件</h3>
-
-<pre><code># 搜索用户级 PyCharm 配置目录下的 vmoptions 文件
+<pre class="codehilite"><code class="language-bash"># 搜索用户级 PyCharm 配置目录下的 vmoptions 文件
 find ~/.config/JetBrains/PyCharm* -name &quot;pycharm64.exe.vmoptions&quot;
 </code></pre>
 
 <h3>添加激活参数</h3>
 <p>在 vmoptions 文件末尾添加：</p>
-
-<pre><code>--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED
+<pre class="codehilite"><code>--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED
 --add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED
 -javaagent:解压路径\\ja-netfilter.jar=jetbrains
 </code></pre>

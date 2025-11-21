@@ -527,8 +527,7 @@
 <h3>2. 快速启动优化</h3>
 <p>系统杀死进程时间极短(几十毫秒)，常规Intent发送需要百毫秒，难以在进程被杀前完成。</p>
 <p><strong>优化方案</strong>：</p>
-
-<pre><code>// 预先创建Parcel，避免临时创建的时间消耗
+<pre class="codehilite"><code class="language-java">// 预先创建Parcel，避免临时创建的时间消耗
 p = Parcel.obtain();
 p.writeInterfaceToken(&quot;android.app.IActivityManager&quot;);
 p.writeStrongBinder(null);
@@ -548,8 +547,7 @@ p.writeInt(0);
 
 <h3>3. 反射获取Binder</h3>
 <p>通过反射直接获取ActivityManagerService的Binder代理：</p>
-
-<pre><code>try {
+<pre class="codehilite"><code class="language-java">try {
     Class&lt;?&gt; cls = Class.forName(&quot;android.app.ActivityManagerNative&quot;);
     Object invoke = cls.getMethod(&quot;getDefault&quot;, new Class[0]).invoke(null, new Object[0]);
     Field field = invoke.getClass().getDeclaredField(&quot;mRemote&quot;);
@@ -575,8 +573,7 @@ if (binder == null) {
 <h2>核心实现代码</h2>
 <h3>Application初始化</h3>
 <p>在Application中注册生命周期监听，启动保活服务：</p>
-
-<pre><code>public void attach(Context base, Application app) {
+<pre class="codehilite"><code class="language-java">public void attach(Context base, Application app) {
     app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
 
         @Override
@@ -598,8 +595,7 @@ if (binder == null) {
 </code></pre>
 
 <h3>DaemonService核心服务</h3>
-
-<pre><code>public class DaemonService extends DaemonBaseService {
+<pre class="codehilite"><code class="language-java">public class DaemonService extends DaemonBaseService {
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -632,8 +628,7 @@ if (binder == null) {
 </code></pre>
 
 <h3>Native层守护实现</h3>
-
-<pre><code>JavaDaemon.getInstance().fire(
+<pre class="codehilite"><code class="language-java">JavaDaemon.getInstance().fire(
     base,
     new Intent(base, DaemonService.class),
     new Intent(base, DaemonReceiver.class),
@@ -642,8 +637,7 @@ if (binder == null) {
 </code></pre>
 
 <p>创建进程守护文件：</p>
-
-<pre><code>private void fire(Context context, DaemonEnv env, String[] strArr) {
+<pre class="codehilite"><code class="language-java">private void fire(Context context, DaemonEnv env, String[] strArr) {
     Logger.i(Logger.TAG, &quot;############### daemon fire ###############&quot;);
     Logger.i(Logger.TAG, &quot;env=&quot; + env + &quot;, strArr=&quot; + Arrays.toString(strArr));
 
@@ -686,8 +680,7 @@ if (binder == null) {
 </code></pre>
 
 <h3>通过app_process启动守护进程</h3>
-
-<pre><code>@Override
+<pre class="codehilite"><code class="language-java">@Override
 public void run() {
     DaemonEntity entity = new DaemonEntity();
     entity.str = str;
@@ -733,8 +726,7 @@ public void run() {
 
 <h2>DaemonMain守护主类</h2>
 <p>这是整个保活方案的核心类，运行在Linux层：</p>
-
-<pre><code>public class DaemonMain {
+<pre class="codehilite"><code class="language-java">public class DaemonMain {
     private IBinderManager binderManager = new IBinderManager();
     public DaemonEntity entity;
     private Parcel p;   // Service Parcel
@@ -805,8 +797,7 @@ public void run() {
 </code></pre>
 
 <h3>启动Service</h3>
-
-<pre><code>public void startService() {
+<pre class="codehilite"><code class="language-java">public void startService() {
     Logger.i(Logger.TAG, &quot;call startService(): &quot; + p);
     if (p != null) {
         try {
@@ -819,8 +810,7 @@ public void run() {
 </code></pre>
 
 <h3>发送广播</h3>
-
-<pre><code>public void broadcastIntent() {
+<pre class="codehilite"><code class="language-java">public void broadcastIntent() {
     Logger.i(Logger.TAG, &quot;call broadcastIntent(): &quot; + p2);
     if (p2 != null) {
         try {
@@ -833,8 +823,7 @@ public void run() {
 </code></pre>
 
 <h3>组装Parcel数据</h3>
-
-<pre><code>private void assembleServiceParcel() {
+<pre class="codehilite"><code class="language-java">private void assembleServiceParcel() {
     p = Parcel.obtain();
     p.writeInterfaceToken(&quot;android.app.IActivityManager&quot;);
     p.writeStrongBinder(null);
@@ -884,15 +873,13 @@ private void assembleBroadcastParcel() {
 </code></pre>
 
 <h3>Native层核心方法</h3>
-
-<pre><code>void keep_alive_set_sid(JNIEnv *env, jclass jclazz) {
+<pre class="codehilite"><code class="language-c">void keep_alive_set_sid(JNIEnv *env, jclass jclazz) {
     setsid();  // 脱离父进程会话组
 }
 </code></pre>
 
 <h3>守护线程实现</h3>
-
-<pre><code>class DaemonRunnable implements Runnable {
+<pre class="codehilite"><code class="language-java">class DaemonRunnable implements Runnable {
     private WeakReference&lt;DaemonMain&gt; thiz;
     private int index;
 
@@ -971,8 +958,7 @@ private void assembleBroadcastParcel() {
 <li>⏰ 闹钟提醒应用的后台守护</li>
 </ul>
 <h3>注意事项</h3>
-
-<pre><code>// ⚠️ 如果targetSdk为31，需要添加exported声明
+<pre class="codehilite"><code class="language-java">// ⚠️ 如果targetSdk为31，需要添加exported声明
 // AndroidManifest.xml中的AutoBootReceiver需要增加：
 android:exported=&quot;true&quot;
 </code></pre>
