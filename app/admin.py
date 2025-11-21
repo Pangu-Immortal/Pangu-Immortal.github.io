@@ -100,8 +100,8 @@ class ArticleAdmin(admin.ModelAdmin):
             "description": "填写文章标题、内容（支持Markdown格式）、上传封面图片并选择标签"
         }),
         ("发布设置", {
-            "fields": ("is_hidden", "allow_comment"),
-            "description": "控制文章的可见性和评论功能"
+            "fields": ("is_hidden",),
+            "description": "控制文章的可见性"
         }),
     )
     readonly_fields = ("published_at",)
