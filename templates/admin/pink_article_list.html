@@ -80,9 +80,6 @@
                             {% else %}
                                 <span class="status-badge published">已发布</span>
                             {% endif %}
-                            {% if not article.allow_comment %}
-                                <span class="status-badge no-comment">禁评</span>
-                            {% endif %}
                         </div>
                         <div class="article-excerpt">
                             {{ article.content_md|truncatewords:20|striptags }}
@@ -103,13 +100,6 @@
                         <div class="status-info">
                             <span class="status-indicator {% if article.is_hidden %}status-hidden{% else %}status-published{% endif %}"></span>
                             <span class="status-text">{{ article.get_is_hidden_display }}</span>
-                        </div>
-                        <div class="comment-status">
-                            {% if article.allow_comment %}
-                                <span class="comment-enabled">💬 允许评论</span>
-                            {% else %}
-                                <span class="comment-disabled">🚫 禁止评论</span>
-                            {% endif %}
                         </div>
                     </td>
                     <td class="date-column">

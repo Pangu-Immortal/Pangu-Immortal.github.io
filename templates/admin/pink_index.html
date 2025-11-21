@@ -12,7 +12,7 @@
 {% block content %}
 <div class="pink-dashboard pink-animate-fade-in">
     <!-- 统计概览 -->
-    <div class="pink-grid pink-grid-cols-1 pink-md:grid-cols-2 pink-lg:grid-cols-4 pink-mb-5">
+    <div class="pink-grid pink-grid-cols-1 pink-md:grid-cols-2 pink-lg:grid-cols-3 pink-mb-5">
         <div class="pink-card pink-text-center">
             <div class="pink-text-3xl pink-font-bold pink-text-primary pink-mb-2">{{ article_count }}</div>
             <div class="pink-text-medium pink-font-medium">总文章数</div>
@@ -20,10 +20,6 @@
         <div class="pink-card pink-text-center">
             <div class="pink-text-3xl pink-font-bold pink-text-secondary pink-mb-2">{{ visible_count }}</div>
             <div class="pink-text-medium pink-font-medium">已发布文章</div>
-        </div>
-        <div class="pink-card pink-text-center">
-            <div class="pink-text-3xl pink-font-bold pink-text-primary pink-mb-2">{{ comment_count }}</div>
-            <div class="pink-text-medium pink-font-medium">总评论数</div>
         </div>
         <div class="pink-card pink-text-center">
             <div class="pink-text-3xl pink-font-bold pink-text-secondary pink-mb-2">{{ tag_count }}</div>
@@ -46,9 +42,6 @@
                 </a>
                 <a href="{% url 'custom_admin:app_tag_changelist' %}" class="pink-btn pink-btn-secondary">
                     🏷️ 标签管理
-                </a>
-                <a href="{% url 'custom_admin:app_comment_changelist' %}" class="pink-btn pink-btn-secondary">
-                    💬 评论管理
                 </a>
             </div>
         </div>
@@ -90,46 +83,6 @@
                 <div class="pink-text-center pink-py-8">
                     <p class="pink-text-light pink-mb-4">暂无文章</p>
                     <a href="{% url 'custom_admin:app_article_add' %}" class="pink-btn pink-btn-primary">创建第一篇文章</a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="pink-card">
-            <div class="pink-card-header">
-                <h2 class="pink-card-title pink-text-primary">💭 最近评论</h2>
-            </div>
-            <div class="pink-card-body">
-                {% if recent_comments %}
-                <div class="pink-space-y-3">
-                    {% for comment in recent_comments %}
-                    <div class="pink-p-3 pink-rounded-lg pink-bg-hover pink-transition-all pink-duration-300 pink-hover:scale-105">
-                        <div class="pink-flex pink-justify-between pink-items-start pink-mb-2">
-                            <div>
-                                <span class="pink-font-semibold pink-text-dark">{{ comment.nickname }}</span>
-                                {% if comment.city %}
-                                <span class="pink-text-sm pink-text-light">来自 {{ comment.city }}</span>
-                                {% endif %}
-                            </div>
-                            <span class="pink-text-sm pink-text-light">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
-                        </div>
-                        <div class="pink-mb-2">
-                            <a href="{% url 'admin:app_article_change' comment.article.pk %}" class="pink-text-sm pink-text-primary pink-text-decoration-none">
-                                {{ comment.article.title }}
-                            </a>
-                            <p class="pink-text-sm pink-text-medium pink-mt-1">{{ comment.content|truncatewords:20 }}</p>
-                        </div>
-                        <div class="pink-flex pink-justify-end">
-                            <span class="pink-status {% if comment.is_hidden %}pink-status-draft{% else %}pink-status-published{% endif %}">
-                                {{ comment.get_is_hidden_display }}
-                            </span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="pink-text-center pink-py-8">
-                    <p class="pink-text-light">暂无评论</p>
                 </div>
                 {% endif %}
             </div>

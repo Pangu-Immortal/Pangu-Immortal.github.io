@@ -131,17 +131,6 @@
                     <div class="help-text">隐藏的文章不会在前台显示</div>
                 </div>
             </div>
-            
-            <div class="form-row">
-                <div class="field-box">
-                    {{ form.allow_comment.label_tag }}
-                    {{ form.allow_comment }}
-                    {% if form.allow_comment.errors %}
-                        <div class="error">{{ form.allow_comment.errors }}</div>
-                    {% endif %}
-                    <div class="help-text">允许读者对文章发表评论</div>
-                </div>
-            </div>
         </div>
 
         <!-- 提交按钮 -->

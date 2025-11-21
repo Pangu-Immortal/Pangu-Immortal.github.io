@@ -65,13 +65,6 @@
                                     {% endif %}
                                 </td>
                                 <td class="pink-mobile:hidden">
-                                    {% if article.allow_comment %}
-                                        <span class="pink-text-success">开启</span>
-                                    {% else %}
-                                        <span class="pink-text-medium">关闭</span>
-                                    {% endif %}
-                                </td>
-                                <td class="pink-mobile:hidden">
                                     <div class="pink-flex pink-gap-1 pink-flex-wrap">
                                         {% for tag in article.tags.all %}
                                             <span class="pink-text-xs pink-bg-light pink-text-primary pink-px-2 pink-py-1 pink-rounded-full">{{ tag.name }}</span>
