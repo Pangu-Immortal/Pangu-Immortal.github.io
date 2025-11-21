@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Android进程保活终极方案：从Framework层实现永生不死</title>
+    <link rel="stylesheet" href="https://unpkg.com/normalize.css/normalize.css">
+    <style>
+        /* ==================== 全局样式 ==================== */
+        :root {
+            color-scheme: dark;
+            --color-bg-deep: #05070d;
+            --color-bg-gradient-start: #090d16;
+            --color-text-light: #d9e6ff;
+            --color-text-sky: #8bc8ff;
+            --color-text-cyan: #38e4d8;
+            --color-card-bg: rgba(10, 18, 32, 0.78);
+            --color-card-border: rgba(63, 101, 152, 0.35);
+            --color-nav-bg: rgba(7, 12, 22, 0.9);
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: radial-gradient(circle at center, var(--color-bg-gradient-start), var(--color-bg-deep) 75%);
+            color: var(--color-text-light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.25s ease;
+        }
+
+        /* ==================== 字母雨背景 ==================== */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* ==================== 导航栏 ==================== */
+        .brand {
+            padding: 36px 24px 16px;
+            text-align: center;
+            letter-spacing: 0.4em;
+            position: relative;
+            z-index: 10;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 32px;
+            color: var(--color-text-sky);
+            text-shadow: 0 0 15px currentColor, 0 0 30px currentColor, 0 0 45px currentColor;
+            font-weight: 600;
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            padding: 16px 24px 22px;
+            position: sticky;
+            top: 0;
+            background: var(--color-nav-bg);
+            backdrop-filter: blur(14px);
+            z-index: 10;
+            border-bottom: 1px solid rgba(139, 200, 255, 0.1);
+        }
+
+        .nav a {
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.82);
+            transition: all 0.25s ease;
+            font-weight: 500;
+        }
+
+        .nav a:hover {
+            color: #ffffff;
+            background: rgba(139, 200, 255, 0.1);
+        }
+
+        .nav a.active {
+            color: #04121c;
+            background: linear-gradient(135deg, #7bd0ff, #38e4d8);
+            box-shadow: 0 10px 26px rgba(78, 208, 223, 0.32);
+            font-weight: 600;
+        }
+
+        /* ==================== 容器 ==================== */
+        .container {
+            max-width: 980px;
+            margin: 32px auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ==================== 卡片 ==================== */
+        .card {
+            background: var(--color-card-bg);
+            border: 1px solid var(--color-card-border);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 12px 35px rgba(9, 18, 33, 0.45);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 45px rgba(9, 18, 33, 0.6);
+        }
+
+        /* ==================== 按钮 ==================== */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border-radius: 32px;
+            background: linear-gradient(135deg, #78d7ff, #2ed6b5);
+            color: #071522;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            transition: all 0.25s ease;
+            border: none;
+            cursor: pointer;
+            text-shadow: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(78, 212, 220, 0.32);
+        }
+
+        /* ==================== 标签 ==================== */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            margin: 4px;
+            border-radius: 12px;
+            background: rgba(139, 200, 255, 0.1);
+            color: var(--color-text-sky);
+            font-size: 13px;
+            border: 1px solid rgba(139, 200, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background: rgba(139, 200, 255, 0.2);
+            border-color: rgba(139, 200, 255, 0.4);
+        }
+
+        /* ==================== 页脚 ==================== */
+        footer {
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 13px;
+            opacity: 0.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ==================== 响应式 ==================== */
+        @media (max-width: 768px) {
+            .brand h1 {
+                font-size: 24px;
+                letter-spacing: 0.3em;
+            }
+
+            .nav {
+                gap: 8px;
+                padding: 12px 16px;
+            }
+
+            .nav a {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .container {
+                padding: 0 16px;
+                margin: 20px auto;
+            }
+
+            .card {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 字母雨背景 -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- 导航栏 -->
+    <div class="brand">
+        <h1>盘古大仙洞府</h1>
+    </div>
+    <nav class="nav">
+        
+        <a href="index.html" class="">首页</a>
+        <a href="list.html" class="active">动态</a>
+        <a href="about.html" class="">关于作者</a>
+        
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container">
+        
+<style>
+    /* ==================== 文章详情样式 ==================== */
+    .detail-wrapper {
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: 0 20px 80px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--color-text-sky);
+        font-size: 14px;
+        margin-bottom: 32px;
+        transition: color 0.2s ease;
+    }
+
+    .back-link:hover {
+        color: var(--color-text-cyan);
+    }
+
+    .back-link svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .article-container {
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-card-border);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(9, 18, 33, 0.5);
+        margin-bottom: 32px;
+        backdrop-filter: blur(14px);
+    }
+
+    .article-cover {
+        width: 100%;
+        height: 320px;
+        object-fit: cover;
+    }
+
+    .article-body {
+        padding: 32px;
+    }
+
+    .article-header {
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(139, 200, 255, 0.1);
+    }
+
+    .article-title {
+        font-size: clamp(28px, 5vw, 38px);
+        font-weight: 700;
+        color: var(--color-text-sky);
+        margin: 0 0 20px;
+        line-height: 1.3;
+    }
+
+    .article-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-size: 14px;
+        opacity: 0.75;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .meta-item svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .article-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    /* ==================== 文章内容样式 ==================== */
+    .article-content {
+        line-height: 1.85;
+        color: #e6edf7;
+        font-size: 16px;
+    }
+
+    .article-content h1, .article-content h2, .article-content h3,
+    .article-content h4, .article-content h5, .article-content h6 {
+        color: var(--color-text-sky);
+        margin-top: 32px;
+        margin-bottom: 16px;
+        font-weight: 600;
+    }
+
+    .article-content h1 { font-size: 32px; }
+    .article-content h2 { font-size: 28px; }
+    .article-content h3 { font-size: 24px; }
+    .article-content h4 { font-size: 20px; }
+
+    .article-content p {
+        margin: 16px 0;
+    }
+
+    .article-content a {
+        color: var(--color-text-sky);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(139, 200, 255, 0.3);
+        transition: all 0.2s ease;
+    }
+
+    .article-content a:hover {
+        color: var(--color-text-cyan);
+        border-bottom-color: var(--color-text-cyan);
+    }
+
+    .article-content code {
+        background: rgba(110, 118, 129, 0.4);
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-family: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', monospace;
+        font-size: 14px;
+    }
+
+    .article-content pre {
+        background: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 12px;
+        padding: 20px;
+        overflow-x: auto;
+        margin: 24px 0;
+    }
+
+    .article-content pre code {
+        background: none;
+        padding: 0;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .article-content blockquote {
+        border-left: 4px solid var(--color-text-sky);
+        padding-left: 20px;
+        margin: 24px 0;
+        color: #8b949e;
+        font-style: italic;
+    }
+
+    .article-content ul, .article-content ol {
+        padding-left: 28px;
+        margin: 16px 0;
+    }
+
+    .article-content li {
+        margin: 10px 0;
+    }
+
+    .article-content table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 24px 0;
+        border: 1px solid var(--color-card-border);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .article-content th,
+    .article-content td {
+        border: 1px solid var(--color-card-border);
+        padding: 12px 16px;
+        text-align: left;
+    }
+
+    .article-content th {
+        background: rgba(139, 200, 255, 0.1);
+        font-weight: 600;
+        color: var(--color-text-sky);
+    }
+
+    .article-content img {
+        max-width: 100%;
+        border-radius: 12px;
+        margin: 24px 0;
+    }
+
+    /* ==================== 响应式 ==================== */
+    @media (max-width: 768px) {
+        .detail-wrapper {
+            padding-bottom: 60px;
+        }
+
+        .article-cover {
+            height: 220px;
+        }
+
+        .article-body {
+            padding: 24px 20px;
+        }
+
+        .article-title {
+            font-size: 24px;
+        }
+
+        .article-content h1 { font-size: 26px; }
+        .article-content h2 { font-size: 22px; }
+        .article-content h3 { font-size: 20px; }
+        .article-content h4 { font-size: 18px; }
+    }
+</style>
+
+<div class="detail-wrapper">
+    <!-- 返回按钮 -->
+    
+    <a href="list.html" class="back-link">
+    
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        返回列表
+    </a>
+
+    <!-- 文章内容 -->
+    <article class="article-container">
+        
+
+        <div class="article-body">
+            <header class="article-header">
+                <h1 class="article-title">Android进程保活终极方案：从Framework层实现永生不死</h1>
+                <div class="article-meta">
+                    <div class="meta-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span>2025-11-21 21:16</span>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                        </svg>
+                        <div class="article-tags">
+                            
+                            <span class="tag">Android</span>
+                            
+                            <span class="tag">Binder</span>
+                            
+                            <span class="tag">Framework</span>
+                            
+                            <span class="tag">JNI</span>
+                            
+                            <span class="tag">Native开发</span>
+                            
+                            <span class="tag">进程保活</span>
+                            
+                            <span class="tag">黑科技</span>
+                            
+                        </div>
+                    </div>
+                    
+                </div>
+            </header>
+
+            <div class="article-content">
+                <h1>Android进程保活终极方案：从Framework层实现永生不死</h1>
+<blockquote>
+<p>本文深入剖析Android 4.0-13全版本覆盖的进程保活黑科技，基于Framework层改造实现超强保活能力，支持全品牌机型。</p>
+</blockquote>
+<h2>技术方案概述</h2>
+<p>不同于一像素保活、双进程保活等传统弱鸡保活手段，本方案从<strong>Linux、Framework、Native</strong>三个层次实现进程守护，具备以下核心能力:</p>
+<h3>核心特性</h3>
+<ul>
+<li>✅ <strong>无需任何权限</strong>：不依赖白名单、电池优化等权限</li>
+<li>✅ <strong>用户无感知</strong>：通知栏可完全隐藏，用户无感</li>
+<li>✅ <strong>全版本支持</strong>：Android 4.0 - Android 13 全覆盖</li>
+<li>✅ <strong>全品牌兼容</strong>：华为、小米、OPPO、VIVO、三星、魅族等98%以上机型</li>
+<li>✅ <strong>开机自启</strong>：系统启动自动拉活</li>
+<li>✅ <strong>安装自启</strong>：应用安装后自动启动</li>
+<li>✅ <strong>后台拉活</strong>：进程被杀后秒级拉活</li>
+<li>✅ <strong>进程守护</strong>：永生不死、死后拉活</li>
+</ul>
+<h2>保活技术原理</h2>
+<h3>1. 文件锁机制</h3>
+<p>核心思路是利用Linux文件进程同步机制：</p>
+<ul>
+<li>进程A给文件A1加锁，进程B给文件B1加锁</li>
+<li>进程A阻塞读取B1文件，进程B阻塞读取A1文件</li>
+<li>当任一进程挂掉，其文件锁自动释放</li>
+<li>另一进程检测到文件锁释放，立即拉活对方</li>
+</ul>
+<p><strong>关键点</strong>：Java层无法实现，必须使用C在Native层完成。</p>
+<h3>2. 快速启动优化</h3>
+<p>系统杀死进程时间极短(几十毫秒)，常规Intent发送需要百毫秒，难以在进程被杀前完成。</p>
+<p><strong>优化方案</strong>：</p>
+
+<pre><code>// 预先创建Parcel，避免临时创建的时间消耗
+p = Parcel.obtain();
+p.writeInterfaceToken(&quot;android.app.IActivityManager&quot;);
+p.writeStrongBinder(null);
+if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {
+    p.writeInt(1);
+}
+entity.intent.writeToParcel(p, 0);
+p.writeString(null);
+if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {
+    p.writeInt(0);
+}
+if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.M) {
+    p.writeString(entity.intent.getComponent().getPackageName());
+}
+p.writeInt(0);
+</code></pre>
+
+<h3>3. 反射获取Binder</h3>
+<p>通过反射直接获取ActivityManagerService的Binder代理：</p>
+
+<pre><code>try {
+    Class&lt;?&gt; cls = Class.forName(&quot;android.app.ActivityManagerNative&quot;);
+    Object invoke = cls.getMethod(&quot;getDefault&quot;, new Class[0]).invoke(null, new Object[0]);
+    Field field = invoke.getClass().getDeclaredField(&quot;mRemote&quot;);
+    field.setAccessible(true);
+    binder = (IBinder) field.get(invoke);
+    field.setAccessible(false);
+    Logger.v(Logger.TAG, &quot;initAmsBinder: mRemote == iBinder &quot; + binder);
+} catch (Throwable th) {
+    binderManager.thrown(th);
+}
+
+if (binder == null) {
+    try {
+        binder = (IBinder) Class.forName(&quot;android.os.ServiceManager&quot;)
+                .getMethod(&quot;getService&quot;, new Class[]{String.class})
+                .invoke(null, new Object[]{&quot;activity&quot;});
+    } catch (Throwable th) {
+        binderManager.thrown(th);
+    }
+}
+</code></pre>
+
+<h2>核心实现代码</h2>
+<h3>Application初始化</h3>
+<p>在Application中注册生命周期监听，启动保活服务：</p>
+
+<pre><code>public void attach(Context base, Application app) {
+    app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+
+        @Override
+        public void onActivityCreated(final Activity activity, Bundle savedInstanceState) {
+            Logger.v(Logger.TAG, String.format(&quot;====&gt; [%s] created&quot;, activity.getClass().getSimpleName()));
+            ServiceHolder.getInstance().bindService(activity, DaemonService.class,
+                new ServiceHolder.OnServiceConnectionListener() {
+                    @Override
+                    public void onServiceConnection(ServiceConnection connection, boolean isConnected) {
+                        if (isConnected) {
+                            connCache.put(activity, connection);
+                        }
+                    }
+                });
+        }
+        // ... 其他生命周期回调
+    });
+}
+</code></pre>
+
+<h3>DaemonService核心服务</h3>
+
+<pre><code>public class DaemonService extends DaemonBaseService {
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return super.onBind(intent);
+    }
+
+    @Override
+    public void onCreate() {
+        try {
+            // 启动前台通知服务
+            ContextCompat.startForegroundService(this,
+                new Intent().setClassName(getPackageName(), NotifyResidentService.class.getName()));
+        } catch (Throwable th) {
+            Logger.e(Logger.TAG, &quot;failed to start foreground service: &quot; + th.getMessage());
+        }
+
+        // 启动辅助服务1
+        Intent intent2 = new Intent();
+        intent2.setClassName(getPackageName(), AssistService1.class.getName());
+        startService(intent2);
+
+        // 启动辅助服务2
+        Intent intent3 = new Intent();
+        intent3.setClassName(getPackageName(), AssistService2.class.getName());
+        startService(intent3);
+
+        super.onCreate();
+    }
+}
+</code></pre>
+
+<h3>Native层守护实现</h3>
+
+<pre><code>JavaDaemon.getInstance().fire(
+    base,
+    new Intent(base, DaemonService.class),
+    new Intent(base, DaemonReceiver.class),
+    new Intent(base, DaemonInstrumentation.class)
+);
+</code></pre>
+
+<p>创建进程守护文件：</p>
+
+<pre><code>private void fire(Context context, DaemonEnv env, String[] strArr) {
+    Logger.i(Logger.TAG, &quot;############### daemon fire ###############&quot;);
+    Logger.i(Logger.TAG, &quot;env=&quot; + env + &quot;, strArr=&quot; + Arrays.toString(strArr));
+
+    boolean z;
+    String processName = Utils.getProcessName();
+    Logger.e(Logger.TAG, &quot;processName: &quot; + processName);
+
+    if (processName.startsWith(context.getPackageName()) &amp;&amp; processName.contains(&quot;:&quot;)) {
+        String substring = processName.substring(processName.lastIndexOf(&quot;:&quot;) + 1);
+        List&lt;String&gt; list = new ArrayList();
+
+        if (strArr != null) {
+            z = false;
+            for (String str : strArr) {
+                if (str.equals(substring)) {
+                    z = true;
+                } else {
+                    list.add(str);
+                }
+            }
+        } else {
+            z = false;
+        }
+
+        if (z) {
+            Logger.v(Logger.TAG, &quot;app lock file start: &quot; + substring);
+            NativeKeepAlive.lockFile(context.getFilesDir() + &quot;/&quot; + substring);
+            Logger.v(Logger.TAG, &quot;app lock file finish&quot;);
+
+            String[] strArr2 = new String[list.size()];
+            for (int i = 0; i &lt; strArr2.length; i++) {
+                strArr2[i] = context.getFilesDir() + &quot;/&quot; + list.get(i);
+                Logger.e(Logger.TAG, &quot;processName strarr2: &quot; + strArr2[i]);
+            }
+
+            futureScheduler.scheduleFuture(new AppProcessRunnable(env, substring, strArr2));
+        }
+    }
+}
+</code></pre>
+
+<h3>通过app_process启动守护进程</h3>
+
+<pre><code>@Override
+public void run() {
+    DaemonEntity entity = new DaemonEntity();
+    entity.str = str;
+    entity.strArr = strArr;
+    entity.intent = env.intent;
+    entity.intent2 = env.intent2;
+    entity.intent3 = env.intent3;
+
+    List&lt;String&gt; list = new ArrayList();
+    list.add(&quot;export CLASSPATH=$CLASSPATH:&quot; + env.publicSourceDir);
+
+    if (env.nativeLibraryDir.contains(&quot;arm64&quot;)) {
+        list.add(&quot;export _LD_LIBRARY_PATH=/system/lib64/:/vendor/lib64/:&quot; + env.nativeLibraryDir);
+        list.add(&quot;export LD_LIBRARY_PATH=/system/lib64/:/vendor/lib64/:&quot; + env.nativeLibraryDir);
+        list.add(String.format(&quot;%s / %s %s --application --nice-name=%s %s&quot;,
+            new Object[]{
+                new File(&quot;/system/bin/app_process&quot;).exists() ? &quot;app_process&quot; : &quot;app_process&quot;,
+                DaemonMain.class.getName(),
+                entity.toString(),
+                str
+            }));
+    } else {
+        list.add(&quot;export _LD_LIBRARY_PATH=/system/lib/:/vendor/lib/:&quot; + env.nativeLibraryDir);
+        list.add(&quot;export LD_LIBRARY_PATH=/system/lib/:/vendor/lib/:&quot; + env.nativeLibraryDir);
+        list.add(String.format(&quot;%s / %s %s --application --nice-name=%s %s&quot;,
+            new Object[]{
+                new File(&quot;/system/bin/app_process32&quot;).exists() ? &quot;app_process32&quot; : &quot;app_process&quot;,
+                DaemonMain.class.getName(),
+                entity.toString(),
+                str
+            }));
+    }
+
+    Logger.i(Logger.TAG, &quot;cmds: &quot; + list);
+    File file = new File(&quot;/&quot;);
+    String[] strArr = new String[list.size()];
+    for (int i = 0; i &lt; strArr.length; i++) {
+        strArr[i] = list.get(i);
+    }
+    ShellExecutor.execute(file, null, strArr);
+}
+</code></pre>
+
+<h2>DaemonMain守护主类</h2>
+<p>这是整个保活方案的核心类，运行在Linux层：</p>
+
+<pre><code>public class DaemonMain {
+    private IBinderManager binderManager = new IBinderManager();
+    public DaemonEntity entity;
+    private Parcel p;   // Service Parcel
+    private Parcel p2;  // Broadcast Parcel
+    private Parcel p3;  // Instrumentation Parcel
+    private IBinder binder;
+    private static volatile FutureScheduler futureScheduler;
+
+    private DaemonMain(DaemonEntity entity) {
+        this.entity = entity;
+    }
+
+    public static void main(String[] strArr) {
+        if (futureScheduler == null) {
+            synchronized (DaemonMain.class) {
+                if (futureScheduler == null) {
+                    futureScheduler = new SingleThreadFutureScheduler(
+                        &quot;daemonmain-holder&quot;,
+                        true
+                    );
+                }
+            }
+        }
+
+        DaemonEntity entity = DaemonEntity.create(strArr[0]);
+        if (entity != null) {
+            new DaemonMain(entity).execute();
+        }
+
+        Logger.e(Logger.TAG, &quot;DaemonMain.main Process.killProcess&quot; + Process.myPid());
+        Process.killProcess(Process.myPid());
+    }
+
+    private void execute() {
+        try {
+            initAmsBinder();
+            assembleParcel();
+            NativeKeepAlive.nativeSetSid();
+
+            try {
+                Logger.v(Logger.TAG, &quot;setArgV0: &quot; + entity.str);
+                Process.class.getMethod(&quot;setArgV0&quot;, new Class[]{String.class})
+                    .invoke(null, new Object[]{entity.str});
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // 为每个进程创建守护线程
+            for (int i = 1; i &lt; entity.strArr.length; i++) {
+                futureScheduler.scheduleFuture(new DaemonRunnable(this, i));
+            }
+
+            Logger.v(Logger.TAG, &quot;[&quot; + entity.str + &quot;] wait file lock start&quot;);
+            NativeKeepAlive.waitFileLock(entity.strArr[0]);
+            Logger.v(Logger.TAG, &quot;[&quot; + entity.str + &quot;] wait file lock finish&quot;);
+
+            // 文件锁释放，立即拉活
+            startService();
+            broadcastIntent();
+            startInstrumentation();
+
+            Logger.v(Logger.TAG, &quot;[&quot; + entity.str + &quot;] start android finish&quot;);
+        } catch (Throwable th) {
+            binderManager.thrown(th);
+        }
+    }
+}
+</code></pre>
+
+<h3>启动Service</h3>
+
+<pre><code>public void startService() {
+    Logger.i(Logger.TAG, &quot;call startService(): &quot; + p);
+    if (p != null) {
+        try {
+            binder.transact(binderManager.startService(), p, null, 1);
+        } catch (Throwable th) {
+            binderManager.thrown(th);
+        }
+    }
+}
+</code></pre>
+
+<h3>发送广播</h3>
+
+<pre><code>public void broadcastIntent() {
+    Logger.i(Logger.TAG, &quot;call broadcastIntent(): &quot; + p2);
+    if (p2 != null) {
+        try {
+            binder.transact(binderManager.broadcastIntent(), p2, null, 1);
+        } catch (Throwable th) {
+            binderManager.thrown(th);
+        }
+    }
+}
+</code></pre>
+
+<h3>组装Parcel数据</h3>
+
+<pre><code>private void assembleServiceParcel() {
+    p = Parcel.obtain();
+    p.writeInterfaceToken(&quot;android.app.IActivityManager&quot;);
+    p.writeStrongBinder(null);
+
+    if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {
+        p.writeInt(1);
+    }
+
+    entity.intent.writeToParcel(p, 0);
+    p.writeString(null);
+
+    if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {
+        p.writeInt(0);
+    }
+
+    if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.M) {
+        p.writeString(entity.intent.getComponent().getPackageName());
+    }
+
+    p.writeInt(0);
+}
+
+@SuppressLint(&quot;WrongConstant&quot;)
+private void assembleBroadcastParcel() {
+    p2 = Parcel.obtain();
+    p2.writeInterfaceToken(&quot;android.app.IActivityManager&quot;);
+    p2.writeStrongBinder(null);
+
+    if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {
+        p2.writeInt(1);
+    }
+
+    entity.intent2.setFlags(32);
+    entity.intent2.writeToParcel(p2, 0);
+    p2.writeString(null);
+    p2.writeStrongBinder(null);
+    p2.writeInt(-1);
+    p2.writeString(null);
+    p2.writeInt(0);
+    p2.writeStringArray(null);
+    p2.writeInt(-1);
+    p2.writeInt(0);
+    p2.writeInt(0);
+    p2.writeInt(0);
+    p2.writeInt(0);
+}
+</code></pre>
+
+<h3>Native层核心方法</h3>
+
+<pre><code>void keep_alive_set_sid(JNIEnv *env, jclass jclazz) {
+    setsid();  // 脱离父进程会话组
+}
+</code></pre>
+
+<h3>守护线程实现</h3>
+
+<pre><code>class DaemonRunnable implements Runnable {
+    private WeakReference&lt;DaemonMain&gt; thiz;
+    private int index;
+
+    private DaemonRunnable(DaemonMain thiz, int index) {
+        this.thiz = new WeakReference&lt;&gt;(thiz);
+        this.index = index;
+    }
+
+    @Override
+    public void run() {
+        Logger.v(Logger.TAG, &quot;[Thread] wait file lock start: &quot; + index);
+        NativeKeepAlive.waitFileLock(thiz.get().entity.strArr[index]);
+        Logger.v(Logger.TAG, &quot;[Thread] wait file lock finished&quot;);
+
+        // 检测到进程被杀，立即拉活
+        thiz.get().startService();
+        thiz.get().broadcastIntent();
+        thiz.get().startInstrumentation();
+
+        Logger.v(Logger.TAG, &quot;[Thread] start android finish&quot;);
+    }
+}
+</code></pre>
+
+<h2>Process.killProcess的秘密</h2>
+<p>为什么在拉活后还要调用<code>Process.killProcess(Process.myPid())</code>？</p>
+<p><strong>原理解析</strong>：</p>
+<ol>
+<li><code>Process.killProcess</code>最终调用Linux API <code>kill()</code>发送<strong>SIGKILL</strong>信号</li>
+<li>普通进程收到SIGKILL会立即结束</li>
+<li><strong>但Android不同</strong>：ActivityManager一直监听进程状态</li>
+<li>发现进程被kill后，会<strong>立即重启进程</strong></li>
+<li>并重启之前的Activity、Service、ContentProvider等组件</li>
+</ol>
+<p>这确保了进程被重新启动，而不是彻底被杀死，实现了<strong>最大程度的保活</strong>。</p>
+<h2>关键技术点总结</h2>
+<h3>1. 多进程架构</h3>
+<ul>
+<li>主进程 + 守护进程 + 辅助进程</li>
+<li>进程间文件锁互相监听</li>
+<li>任一进程被杀，其他进程立即拉活</li>
+</ul>
+<h3>2. Binder机制</h3>
+<ul>
+<li>反射获取ActivityManagerService的Binder</li>
+<li>预先创建Parcel避免临时创建耗时</li>
+<li>直接通过Binder.transact()启动组件</li>
+</ul>
+<h3>3. Native层守护</h3>
+<ul>
+<li>使用C语言实现文件锁机制</li>
+<li><code>setsid()</code>脱离父进程控制</li>
+<li>阻塞等待文件锁释放</li>
+</ul>
+<h3>4. Linux进程机制</h3>
+<ul>
+<li>通过app_process在Linux层启动Java进程</li>
+<li>配置CLASSPATH和LD_LIBRARY_PATH</li>
+<li>利用ActivityManager的进程重启机制</li>
+</ul>
+<h3>5. 多重拉活</h3>
+<ul>
+<li>Service拉活</li>
+<li>Broadcast拉活</li>
+<li>Instrumentation拉活</li>
+<li>三重保障确保进程重启</li>
+</ul>
+<h2>适用场景</h2>
+<p>⚠️ <strong>重要提示</strong>：本技术方案仅供学习交流使用，禁止用于非法用途。</p>
+<h3>合法使用场景</h3>
+<ul>
+<li>📱 即时通讯应用的消息推送</li>
+<li>🎵 音乐播放器的后台播放</li>
+<li>🏃 运动健康应用的计步服务</li>
+<li>📍 定位导航应用的位置更新</li>
+<li>⏰ 闹钟提醒应用的后台守护</li>
+</ul>
+<h3>注意事项</h3>
+
+<pre><code>// ⚠️ 如果targetSdk为31，需要添加exported声明
+// AndroidManifest.xml中的AutoBootReceiver需要增加：
+android:exported=&quot;true&quot;
+</code></pre>
+
+<h2>技术要点</h2>
+<ol>
+<li><strong>文件锁</strong>：Native层实现，Java层无法完成</li>
+<li><strong>Binder优化</strong>：预创建Parcel，反射获取Binder</li>
+<li><strong>广播拉活</strong>：binder transcate无法直接启动Service</li>
+<li><strong>数据传输</strong>：传输u8数据而非直接传递parcel避免监听失效</li>
+<li><strong>进程脱离</strong>：setsid()成为新会话领头进程</li>
+</ol>
+<h2>源码参考</h2>
+<p>完整源码实现请参考：<a>GitHub - Pangu-Immortal</a></p>
+<h2>相关技术文档</h2>
+<ul>
+<li><a>Android Instrumentation官方文档</a></li>
+<li>ActivityManager进程管理机制</li>
+<li>Linux文件锁与进程同步</li>
+<li>Android Binder通信机制</li>
+</ul>
+
+
+<p><strong>免责声明</strong>：本文内容仅供技术学习交流，严禁用于任何非法用途。开发者应遵守相关法律法规和应用商店规范，合理使用进程保活技术。</p>
+            </div>
+        </div>
+    </article>
+</div>
+
+    </div>
+
+    <!-- 页脚 -->
+    <footer>© 盘古大仙洞府 - 基于 Django MTV 模式构建</footer>
+
+    <!-- 字母雨脚本 -->
+    <script>
+    (function() {
+        const canvas = document.getElementById('matrix-canvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+*/#@$&'.split('');
+
+        let dims = { w: 0, h: 0, dpr: 1, fontSize: 16 };
+        let drops = [];
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameInterval = 1000 / targetFPS;
+
+        function setup() {
+            dims = {
+                w: window.innerWidth,
+                h: window.innerHeight,
+                dpr: window.devicePixelRatio || 1,
+                fontSize: Math.max(14, Math.floor(window.innerWidth / 100))
+            };
+
+            canvas.width = dims.w * dims.dpr;
+            canvas.height = dims.h * dims.dpr;
+            ctx.setTransform(dims.dpr, 0, 0, dims.dpr, 0, 0);
+
+            const columns = Math.floor(dims.w / dims.fontSize);
+            drops = Array(columns).fill(0).map(() => Math.random() * -dims.h / dims.fontSize);
+        }
+
+        function draw(currentTime) {
+            if (currentTime - lastTime < frameInterval) {
+                requestAnimationFrame(draw);
+                return;
+            }
+            lastTime = currentTime;
+
+            ctx.fillStyle = 'rgba(3, 6, 12, 0.08)';
+            ctx.fillRect(0, 0, dims.w, dims.h);
+
+            ctx.font = dims.fontSize + 'px "JetBrains Mono", "SFMono-Regular", "Menlo", monospace';
+
+            drops.forEach((y, index) => {
+                for (let i = 0; i < 3; i++) {
+                    const charY = (y - i * 2) * dims.fontSize;
+                    if (charY > 0 && charY < dims.h) {
+                        const text = chars[Math.floor(Math.random() * chars.length)];
+                        const x = index * dims.fontSize;
+                        const opacity = i === 0 ? 0.95 : 0.7 - (i * 0.2);
+                        const brightness = i === 0 ? 75 : 65 - (i * 10);
+
+                        ctx.fillStyle = `hsla(${190 + (index % 40)}, 90%, ${brightness}%, ${opacity})`;
+                        ctx.fillText(text, x, charY);
+                    }
+                }
+
+                if (y * dims.fontSize > dims.h + dims.fontSize * 5) {
+                    drops[index] = Math.random() > 0.98 ? Math.random() * -dims.h / dims.fontSize : -dims.fontSize;
+                } else {
+                    drops[index] += 0.5 + Math.random() * 0.7;
+                }
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        setup();
+
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(setup, 100);
+        });
+
+        requestAnimationFrame(draw);
+    })();
+    </script>
+</body>
+</html>
