@@ -1,0 +1,337 @@
+{% extends "admin/pink_base.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block title %}标签管理 - 盘古大仙洞府{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">🌸 盘古大仙洞府后台</a></h1>
+{% endblock %}
+
+{% block content_title %}<h1>🏷️ 标签管理</h1>{% endblock %}
+
+{% block content %}
+<div class="tag-list-container">
+    <!-- 操作栏 -->
+    <div class="action-bar">
+        <div class="action-buttons">
+            <a href="{% url 'admin:app_tag_add' %}" class="add-button">
+                <span>✨</span>
+                新建标签
+            </a>
+        </div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 搜索标签名称..." onkeyup="searchTags()">
+        </div>
+    </div>
+
+    <!-- 标签列表 -->
+    <div class="tags-grid">
+        {% if cl.result_count > 0 %}
+            {% for tag in cl.result_list %}
+            <div class="tag-card" data-name="{{ tag.name|lower }}" data-id="{{ tag.pk }}">
+                <div class="tag-header">
+                    <h3 class="tag-name">{{ tag.name }}</h3>
+                    <div class="tag-stats">
+                        <span class="article-count">📋 {{ tag.article_set.count }} 篇文章</span>
+                    </div>
+                </div>
+                <div class="tag-info">
+                    <div class="info-item">
+                        <span class="info-label">创建时间：</span>
+                        <span class="info-value">{{ tag.created_at|date:"Y-m-d H:i" }}</span>
+                    </div>
+                </div>
+                <div class="tag-actions">
+                    <a href="{% url 'admin:app_tag_change' tag.pk %}" class="edit-btn">
+                        <span>✏️</span>
+                        编辑
+                    </a>
+                    <a href="{% url 'admin:app_tag_delete' tag.pk %}" class="delete-btn" 
+                       onclick="return confirm('确定要删除这个标签吗？')">
+                        <span>🗑️</span>
+                        删除
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🏷️</div>
+            <h3>还没有标签</h3>
+            <p>创建一些标签来分类你的文章吧！</p>
+            <a href="{% url 'admin:app_tag_add' %}" class="add-button">
+                <span>✨</span>
+                新建标签
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.tag-list-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 操作栏 */
+.action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px var(--shadow-soft);
+    border: 1px solid var(--pink-lighter);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.add-button {
+    background: var(--gradient-pink);
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px var(--shadow-pink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--shadow-pink);
+    color: white;
+    text-decoration: none;
+}
+
+.search-box input {
+    border: 2px solid var(--pink-lighter);
+    border-radius: 8px;
+    padding: 12px 16px;
+    width: 300px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+    border-color: var(--pink-primary);
+    box-shadow: 0 0 0 3px var(--shadow-pink);
+    outline: none;
+}
+
+/* 标签网格 */
+.tags-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.tag-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 8px 32px var(--shadow-soft);
+    border: 1px solid var(--pink-lighter);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.tag-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px var(--shadow-pink);
+}
+
+.tag-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-pink);
+}
+
+.tag-header {
+    margin-bottom: 20px;
+}
+
+.tag-name {
+    color: var(--text-dark);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    word-break: break-word;
+}
+
+.tag-stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.article-count {
+    background: var(--pink-lighter);
+    color: var(--pink-dark);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.tag-info {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: var(--warm-white);
+    border-radius: 8px;
+    border: 1px solid var(--pink-lighter);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.info-label {
+    color: var(--text-medium);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.info-value {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.tag-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.edit-btn, .delete-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid transparent;
+}
+
+.edit-btn {
+    background: #e3f2fd;
+    color: #2196f3;
+    border-color: #bbdefb;
+}
+
+.edit-btn:hover {
+    background: #2196f3;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.delete-btn {
+    background: #ffebee;
+    color: #f44336;
+    border-color: #ffcdd2;
+}
+
+.delete-btn:hover {
+    background: #f44336;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+/* 空状态 */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--shadow-soft);
+    border: 1px solid var(--pink-lighter);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    color: var(--text-dark);
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+}
+
+.empty-state p {
+    color: var(--text-medium);
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .action-bar {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .search-box input {
+        width: 100%;
+    }
+    
+    .tags-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tag-actions {
+        flex-direction: column;
+    }
+    
+    .edit-btn, .delete-btn {
+        justify-content: center;
+    }
+}
+</style>
+
+<script>
+// 搜索功能
+function searchTags() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const tagCards = document.querySelectorAll('.tag-card');
+    
+    tagCards.forEach(card => {
+        const name = card.getAttribute('data-name');
+        if (name.includes(searchTerm)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

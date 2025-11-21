@@ -1,0 +1,71 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Django Server",
+            "type": "shell",
+            "command": "source ~/miniconda3/etc/profile.d/conda.sh && conda activate RunProject && python manage.py runserver",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Generate Static Site",
+            "type": "shell",
+            "command": "source ~/miniconda3/etc/profile.d/conda.sh && conda activate RunProject && python manage.py generate_static_site",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Make Migrations",
+            "type": "shell",
+            "command": "source ~/miniconda3/etc/profile.d/conda.sh && conda activate RunProject && python manage.py makemigrations",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Migrate Database",
+            "type": "shell",
+            "command": "source ~/miniconda3/etc/profile.d/conda.sh && conda activate RunProject && python manage.py migrate",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Django Shell",
+            "type": "shell",
+            "command": "source ~/miniconda3/etc/profile.d/conda.sh && conda activate RunProject && python manage.py shell",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Create Superuser",
+            "type": "shell",
+            "command": "source ~/miniconda3/etc/profile.d/conda.sh && conda activate RunProject && python manage.py createsuperuser",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        }
+    ]
+}

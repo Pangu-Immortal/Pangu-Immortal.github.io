@@ -1,0 +1,921 @@
+{% extends "admin/pink_base.html" %}
+{% load i18n static admin_urls %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block content_title %}{{ title }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+/* 文章编辑页面专用样式 - 适配粉色主题 */
+
+.form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+}
+
+.form-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    margin-bottom: var(--space-xl);
+    box-shadow: 0 8px 32px var(--shadow-light);
+}
+
+.form-section h3 {
+    color: var(--pink-primary);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-lg);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-label {
+    color: var(--text-medium);
+    font-weight: 500;
+    margin-bottom: var(--space-sm);
+    font-size: var(--text-base);
+}
+
+.form-label.required::after {
+    content: " *";
+    color: var(--coral);
+}
+
+/* 使用粉色主题的表单控件 */
+.form-input, .form-textarea, .form-select {
+    background: var(--bg-card);
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    color: var(--text-dark);
+    font-size: var(--text-base);
+    transition: all 0.3s ease;
+    width: 100%;
+    min-height: 44px; /* 触摸友好 */
+}
+
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--pink-primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1), 0 0 20px rgba(255, 107, 157, 0.1);
+    transform: translateY(-1px);
+}
+
+/* 优化复选框样式 - 缩小尺寸 */
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    cursor: pointer;
+    user-select: none;
+}
+
+.form-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--pink-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.form-checkbox span {
+    color: var(--text-medium);
+    font-size: var(--text-base);
+}
+
+.form-hint {
+    color: var(--text-light);
+    font-size: var(--text-sm);
+    margin-top: var(--space-xs);
+}
+
+/* 文件上传 */
+.file-upload {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.file-input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-upload-btn {
+    background: linear-gradient(135deg, var(--pink-primary) 0%, var(--pink-secondary) 100%);
+    color: var(--text-white);
+    border: none;
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.file-upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--shadow-medium);
+}
+
+.file-name {
+    margin-left: var(--space-md);
+    color: var(--text-light);
+    font-size: var(--text-sm);
+}
+
+/* 标签选择器 - 现代化 */
+.tag-selector {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+.tag-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 4px 12px var(--shadow-light);
+}
+
+.tag-panel-header {
+    background: linear-gradient(135deg, var(--pink-primary) 0%, var(--pink-secondary) 100%);
+    color: var(--text-white);
+    padding: var(--space-md);
+    font-weight: 600;
+    font-size: var(--text-sm);
+}
+
+.tag-search {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: none;
+    border-bottom: 1px solid var(--border-light);
+    padding: var(--space-sm) var(--space-md);
+    color: var(--text-dark);
+    font-size: var(--text-sm);
+}
+
+.tag-search::placeholder {
+    color: var(--text-light);
+}
+
+.tag-list {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: var(--space-sm);
+}
+
+.tag-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: var(--text-sm);
+    color: var(--text-dark);
+}
+
+.tag-item:hover {
+    background: var(--bg-hover);
+}
+
+.tag-item.selected {
+    background: var(--pink-lighter);
+    border: 1px solid var(--pink-light);
+    color: var(--pink-darker);
+}
+
+.tag-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-md) 0;
+}
+
+.tag-btn {
+    background: linear-gradient(135deg, var(--pink-primary) 0%, var(--pink-secondary) 100%);
+    color: var(--text-white);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.tag-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px var(--shadow-medium);
+}
+
+/* Markdown编辑器 - 专业级 */
+.markdown-editor {
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.9);
+    box-shadow: 0 4px 20px rgba(2, 8, 20, 0.3);
+}
+
+.markdown-toolbar {
+    background: linear-gradient(135deg, #075985 0%, #0c4a6e 100%);
+    padding: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.markdown-btn {
+    background: rgba(15, 23, 42, 0.8);
+    color: #e2e8f0;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.markdown-btn:hover {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: #06b6d4;
+}
+
+.markdown-btn.active {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.markdown-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    min-height: 500px;
+}
+
+.markdown-input, .markdown-preview {
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.9);
+    border: none;
+    color: #e2e8f0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+}
+
+.markdown-input {
+    border-right: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.markdown-preview {
+    background: rgba(30, 41, 59, 0.9);
+    overflow-y: auto;
+}
+
+.markdown-preview h1, .markdown-preview h2, .markdown-preview h3,
+.markdown-preview h4, .markdown-preview h5, .markdown-preview h6 {
+    color: #7dd3fc;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.markdown-preview code {
+    background: rgba(56, 189, 248, 0.1);
+    color: #7dd3fc;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.9em;
+}
+
+.markdown-preview pre {
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+.markdown-preview blockquote {
+    border-left: 4px solid #06b6d4;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.markdown-preview table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+}
+
+.markdown-preview th, .markdown-preview td {
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.markdown-preview th {
+    background: rgba(56, 189, 248, 0.1);
+    color: #7dd3fc;
+    font-weight: 600;
+}
+
+/* 操作按钮 */
+.form-actions {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: flex-end;
+    margin-top: var(--space-xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border-light);
+}
+
+.btn {
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-lg);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--text-base);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--pink-primary) 0%, var(--pink-secondary) 100%);
+    color: var(--text-white);
+    box-shadow: 0 4px 15px var(--shadow-medium);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--shadow-dark);
+}
+
+.btn-secondary {
+    background: var(--warm-gray);
+    color: var(--text-medium);
+    border: 1px solid var(--border-medium);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--pink-darker);
+    border-color: var(--pink-light);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    color: var(--text-white);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+    .main-container {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+    
+    .sidebar {
+        width: 100%;
+        position: static;
+    }
+    
+    .tag-selector {
+        grid-template-columns: 1fr;
+    }
+    
+    .markdown-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .markdown-input {
+        border-right: none;
+        border-bottom: 1px solid var(--border-light);
+    }
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        padding: var(--space-md);
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--warm-gray);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--pink-primary) 0%, var(--pink-secondary) 100%);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--pink-dark) 0%, var(--pink-primary) 100%);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <form method="post" enctype="multipart/form-data" id="article-form">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+        <div class="alert alert-error">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+        
+        <!-- 文章内容 -->
+        <div class="form-section">
+            <h3>📝 文章内容</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.title.id_for_label }}" class="form-label required">
+                        📖 文章标题
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                    <div class="form-error">{{ form.title.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.subtitle.id_for_label }}" class="form-label">
+                        📝 副标题（可选）
+                    </label>
+                    {{ form.subtitle }}
+                    <div class="form-hint">简洁的副标题，吸引读者注意力</div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label class="form-label required">
+                        📄 文章内容（Markdown）
+                    </label>
+                    <div class="markdown-editor">
+                        <div class="markdown-toolbar">
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('**', '**')" title="加粗">
+                                <strong>B</strong>
+                            </button>
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('*', '*')" title="斜体">
+                                <em>I</em>
+                            </button>
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('~~', '~~')" title="删除线">
+                                <s>S</s>
+                            </button>
+                            <div class="toolbar-separator"></div>
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('# ', '')" title="标题1">H1</button>
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('## ', '')" title="标题2">H2</button>
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('### ', '')" title="标题3">H3</button>
+                            <div class="toolbar-separator"></div>
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('`', '`')" title="行内代码">
+                                <code>&lt;/&gt;</code>
+                            </button>
+                            <button type="button" class="markdown-btn" onclick="insertCodeBlock()" title="代码块">
+                                { }
+                            </button>
+                            <div class="toolbar-separator"></div>
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('- ', '')" title="无序列表">• 列表</button>
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('1. ', '')" title="有序列表">1. 列表</button>
+                            <div class="toolbar-separator"></div>
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('[', '](url)')" title="链接">🔗</button>
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('![', '](image-url)')" title="图片">🖼️</button>
+                            <div class="toolbar-separator"></div>
+                            <button type="button" class="markdown-btn" onclick="insertTable()" title="表格">⊞</button>
+                            <button type="button" class="markdown-btn" onclick="insertMarkdown('---', '')" title="分隔线">─</button>
+                            <div class="toolbar-separator"></div>
+                            <button type="button" class="markdown-btn" onclick="toggleFullscreen()" title="全屏">⛶</button>
+                            <button type="button" class="markdown-btn" onclick="clearContent()" title="清空">🗑️</button>
+                        </div>
+                        <div class="markdown-content">
+                            <textarea name="content_md" id="content_md" class="markdown-input" placeholder="在这里输入Markdown内容...
+
+支持语法：
+- **加粗文本**
+- *斜体文本*
+- `行内代码`
+- 标题：# 一级标题
+- 列表：- 项目1
+- 链接：[链接文本](url)
+- 图片：![描述](图片url)
+- 代码块：```语言
+代码内容
+```
+
+更多功能请使用工具栏按钮！">{{ form.content_md.value|default:"" }}</textarea>
+                            <div class="markdown-preview" id="markdown-preview">
+                                <div style="padding: 2rem; text-align: center; color: #94a3b8;">
+                                    <p>📝 预览区域</p>
+                                    <p style="font-size: 0.9rem; margin-top: 1rem;">在左侧输入Markdown内容，这里将实时显示预览效果</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.content_md.errors %}
+                    <div class="form-error">{{ form.content_md.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- 文章设置 -->
+        <div class="form-section">
+            <h3>⚙️ 文章设置</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.cover.id_for_label }}" class="form-label">
+                        🖼️ 封面图片
+                    </label>
+                    <div class="file-upload">
+                        <input type="file" name="cover" id="{{ form.cover.id_for_label }}" class="file-input" accept="image/*" onchange="updateFileName(this)">
+                        <button type="button" class="file-upload-btn">
+                            📁 选择图片
+                        </button>
+                        <span class="file-name" id="cover-file-name">
+                            {% if form.instance.cover %}
+                                {{ form.instance.cover.name }}
+                            {% else %}
+                                未选择文件
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% if form.cover.errors %}
+                    <div class="form-error">{{ form.cover.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.published_at.id_for_label }}" class="form-label">
+                        📅 发布时间
+                    </label>
+                    {{ form.published_at }}
+                    <div class="form-hint">文章显示的发布时间</div>
+                    {% if form.published_at.errors %}
+                    <div class="form-error">{{ form.published_at.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        🏷️ 文章标签
+                    </label>
+                    <div class="tag-selector">
+                        <div class="tag-panel">
+                            <div class="tag-panel-header">📋 可用标签</div>
+                            <input type="text" class="tag-search" placeholder="🔍 搜索标签..." onkeyup="filterTags(this, 'available-tags')">
+                            <div class="tag-list" id="available-tags">
+                                {% for tag in available_tags %}
+                                <div class="tag-item" onclick="selectTag(this, '{{ tag.id }}', '{{ tag.name }}')" data-tag-id="{{ tag.id }}">
+                                    {{ tag.name }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="tag-controls">
+                            <button type="button" class="tag-btn" onclick="addSelectedTags()" title="添加选中标签">→</button>
+                            <button type="button" class="tag-btn" onclick="removeSelectedTags()" title="移除选中标签">←</button>
+                        </div>
+                        
+                        <div class="tag-panel">
+                            <div class="tag-panel-header">✅ 已选标签</div>
+                            <input type="text" class="tag-search" placeholder="🔍 搜索已选标签..." onkeyup="filterTags(this, 'selected-tags')">
+                            <div class="tag-list" id="selected-tags">
+                                {% for tag in selected_tags %}
+                                <div class="tag-item selected" onclick="deselectTag(this, '{{ tag.id }}', '{{ tag.name }}')" data-tag-id="{{ tag.id }}">
+                                    {{ tag.name }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="tags" id="selected-tags-input" value="{% for tag in selected_tags %}{{ tag.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                    {% if form.tags.errors %}
+                    <div class="form-error">{{ form.tags.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- 发布选项 -->
+        <div class="form-section">
+            <h3>🔒 发布选项</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-checkbox">
+                        <input type="checkbox" name="is_hidden" id="{{ form.is_hidden.id_for_label }}" {% if form.is_hidden.value %}checked{% endif %}>
+                        👻 隐藏文章
+                    </label>
+                    <div class="form-hint">文章不会在网站前台显示</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-checkbox">
+                        <input type="checkbox" name="allow_comment" id="{{ form.allow_comment.id_for_label }}" {% if form.allow_comment.value %}checked{% endif %}>
+                        💬 允许评论
+                    </label>
+                    <div class="form-hint">允许用户对文章发表评论</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                ❌ 取消
+            </button>
+            <button type="submit" class="btn btn-primary" name="_save">
+                💾 保存
+            </button>
+            <button type="submit" class="btn btn-success" name="_continue">
+                💾 保存并继续编辑
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<script>
+// Markdown编辑器功能
+let markdownInput = document.getElementById('content_md');
+let markdownPreview = document.getElementById('markdown-preview');
+
+// 实时预览
+function updatePreview() {
+    if (!markdownInput || !markdownPreview) return;
+    
+    let content = markdownInput.value;
+    if (!content.trim()) {
+        markdownPreview.innerHTML = '<div style="padding: 2rem; text-align: center; color: #94a3b8;"><p>📝 预览区域</p><p style="font-size: 0.9rem; margin-top: 1rem;">在左侧输入Markdown内容，这里将实时显示预览效果</p></div>';
+        return;
+    }
+    
+    // 配置marked选项
+    marked.setOptions({
+        highlight: function(code, lang) {
+            if (Prism && lang) {
+                return Prism.highlight(code, Prism.languages[lang] || Prism.languages.markup, lang);
+            }
+            return code;
+        },
+        breaks: true,
+        gfm: true
+    });
+    
+    let html = marked.parse(content);
+    markdownPreview.innerHTML = DOMPurify.sanitize(html);
+}
+
+// 插入Markdown语法
+function insertMarkdown(before, after) {
+    if (!markdownInput) return;
+    
+    let start = markdownInput.selectionStart;
+    let end = markdownInput.selectionEnd;
+    let selectedText = markdownInput.value.substring(start, end);
+    let replacement = before + selectedText + after;
+    
+    markdownInput.value = markdownInput.value.substring(0, start) + replacement + markdownInput.value.substring(end);
+    markdownInput.focus();
+    markdownInput.setSelectionRange(start + before.length, start + before.length + selectedText.length);
+    
+    updatePreview();
+}
+
+// 插入代码块
+function insertCodeBlock() {
+    insertMarkdown('```javascript\n', '\n```\n');
+}
+
+// 插入表格
+function insertTable() {
+    let table = '| 标题1 | 标题2 | 标题3 |\n|-------|-------|-------|\n| 内容1 | 内容2 | 内容3 |\n';
+    insertMarkdown(table, '');
+}
+
+// 清空内容
+function clearContent() {
+    if (confirm('确定要清空所有内容吗？此操作无法撤销。')) {
+        markdownInput.value = '';
+        updatePreview();
+    }
+}
+
+// 全屏模式
+function toggleFullscreen() {
+    let editor = document.querySelector('.markdown-editor');
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        editor.requestFullscreen();
+    }
+}
+
+// 文件上传处理
+function updateFileName(input) {
+    let fileName = input.files[0]?.name || '未选择文件';
+    document.getElementById('cover-file-name').textContent = fileName;
+}
+
+// 标签选择功能
+function filterTags(input, listId) {
+    let filter = input.value.toLowerCase();
+    let items = document.querySelectorAll(`#${listId} .tag-item`);
+    
+    items.forEach(item => {
+        let text = item.textContent.toLowerCase();
+        if (text.includes(filter)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function selectTag(element, tagId, tagName) {
+    element.classList.add('selected');
+}
+
+function deselectTag(element, tagId, tagName) {
+    element.classList.remove('selected');
+}
+
+function addSelectedTags() {
+    let selectedItems = document.querySelectorAll('#available-tags .tag-item.selected');
+    let selectedList = document.getElementById('selected-tags');
+    let selectedTags = [];
+    
+    selectedItems.forEach(item => {
+        let tagId = item.dataset.tagId;
+        let tagName = item.textContent;
+        
+        // 检查是否已存在
+        let existing = selectedList.querySelector(`[data-tag-id="${tagId}"]`);
+        if (!existing) {
+            let newItem = item.cloneNode(true);
+            newItem.classList.remove('selected');
+            newItem.onclick = function() { deselectTag(this, tagId, tagName); };
+            selectedList.appendChild(newItem);
+            selectedTags.push(tagId);
+        }
+        item.classList.remove('selected');
+    });
+    
+    updateSelectedTagsInput();
+}
+
+function removeSelectedTags() {
+    let selectedItems = document.querySelectorAll('#selected-tags .tag-item.selected');
+    
+    selectedItems.forEach(item => {
+        item.remove();
+    });
+    
+    updateSelectedTagsInput();
+}
+
+function updateSelectedTagsInput() {
+    let selectedItems = document.querySelectorAll('#selected-tags .tag-item');
+    let tagIds = Array.from(selectedItems).map(item => item.dataset.tagId);
+    document.getElementById('selected-tags-input').value = tagIds.join(',');
+}
+
+// 初始化
+if (markdownInput) {
+    markdownInput.addEventListener('input', updatePreview);
+    markdownInput.addEventListener('scroll', function() {
+        // 同步滚动（可选）
+        let scrollPercentage = this.scrollTop / (this.scrollHeight - this.clientHeight);
+        markdownPreview.scrollTop = scrollPercentage * (markdownPreview.scrollHeight - markdownPreview.clientHeight);
+    });
+    
+    // 初始预览
+    updatePreview();
+}
+
+// 键盘快捷键
+document.addEventListener('keydown', function(e) {
+    // Ctrl + B 加粗
+    if (e.ctrlKey && e.key === 'b') {
+        e.preventDefault();
+        insertMarkdown('**', '**');
+    }
+    
+    // Ctrl + I 斜体
+    if (e.ctrlKey && e.key === 'i') {
+        e.preventDefault();
+        insertMarkdown('*', '*');
+    }
+    
+    // Ctrl + K 链接
+    if (e.ctrlKey && e.key === 'k') {
+        e.preventDefault();
+        insertMarkdown('[', '](url)');
+    }
+    
+    // Ctrl + S 保存
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        document.querySelector('button[name="_save"]').click();
+    }
+});
+
+// 表单提交处理
+document.getElementById('article-form').addEventListener('submit', function(e) {
+    // 确保标签数据正确提交
+    let selectedTags = document.getElementById('selected-tags-input').value;
+    if (selectedTags) {
+        let tagsArray = selectedTags.split(',').filter(id => id.trim());
+        // 创建隐藏输入字段
+        tagsArray.forEach(tagId => {
+            let input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'tags';
+            input.value = tagId;
+            this.appendChild(input);
+        });
+    }
+});
+</script>
+{% endblock %}

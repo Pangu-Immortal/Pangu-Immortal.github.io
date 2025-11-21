@@ -1,0 +1,291 @@
+{% load i18n static %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'zh-hans' }}" dir="{{ LANGUAGE_CODE|default:'zh-hans'|language_bidi|yesno:'rtl,ltr,auto' }}">
+<head>
+<title>{% block title %}{% endblock %}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<meta name="robots" content="NONE,NOARCHIVE">
+
+<link rel="stylesheet" href="{% block stylesheet %}{% static 'admin/css/base.css' %}{% endblock %}">
+<link rel="stylesheet" href="{% static 'admin/pink-admin.css' %}">
+<link rel="stylesheet" href="{% static 'admin/pink-admin-responsive.css' %}">
+<link rel="stylesheet" href="{% static 'admin/pink-admin-forms.css' %}">
+<link rel="stylesheet" href="{% static 'admin/pink-admin-nav.css' %}">
+ 
+
+{% block dark-mode-vars %}{% endblock %}
+ 
+{% block extrastyle %}{% endblock %}
+{% if LANGUAGE_BIDI %}<link rel="stylesheet" href="{% block stylesheet_rtl %}{% static 'admin/css/rtl.css' %}{% endblock %}">{% endif %}
+{% block extrahead %}{% endblock %}
+{% block responsive %}
+    <link rel="stylesheet" href="{% static 'admin/css/responsive.css' %}">
+    {% if LANGUAGE_BIDI %}<link rel="stylesheet" href="{% static 'admin/css/responsive_rtl.css' %}">{% endif %}
+{% endblock %}
+</head>
+{% load i18n %}
+
+<body class="pink-body {% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}"
+  data-admin-utc-offset="{% now "Z" %}">
+
+<!-- Container -->
+<div class="pink-container" id="container">
+
+    {% if not is_popup %}
+    <!-- Header -->
+    <header class="pink-navbar" id="header">
+        <div class="pink-navbar-container">
+            <div class="pink-navbar-brand" id="branding">
+            {% block branding %}
+                <a href="{% url 'custom_admin:index' %}" class="pink-navbar-brand-link">
+                    <i class="icon-logo"></i>
+                    盘古大仙洞府 - 管理后台
+                </a>
+            {% endblock %}
+            </div>
+            
+            <button class="pink-navbar-toggle" id="navbar-toggle" aria-label="切换导航菜单">
+                <span class="pink-navbar-toggle-icon"></span>
+            </button>
+            
+            {% block usertools %}
+            {% if has_permission %}
+            <nav class="pink-navbar-nav" id="navbar-nav">
+                {% block welcome-msg %}
+                    <div class="pink-navbar-item">
+                        <span class="pink-navbar-text">
+                            {% translate 'Welcome,' %}
+                            <strong>{% firstof user.get_short_name user.get_username %}</strong>
+                        </span>
+                    </div>
+                {% endblock %}
+                {% block userlinks %}
+                    {% if site_url %}
+                        <a href="{{ site_url }}" class="pink-navbar-link">{% translate 'View site' %}</a>
+                    {% endif %}
+                    {% if user.is_active and user.is_staff %}
+                        {% url 'django-admindocs-docroot' as docsroot %}
+                        {% if docsroot %}
+                            <a href="{{ docsroot }}" class="pink-navbar-link">{% translate 'Documentation' %}</a>
+                        {% endif %}
+                    {% endif %}
+                    {% if user.has_usable_password %}
+                    <a href="{% url 'admin:password_change' %}" class="pink-navbar-link">{% translate 'Change password' %}</a>
+                    {% endif %}
+                    <form id="logout-form" method="post" action="{% url 'admin:logout' %}" class="pink-navbar-form">
+                        {% csrf_token %}
+                        <button type="submit" class="pink-navbar-link pink-navbar-logout">{% translate 'Log out' %}</button>
+                    </form>
+                {% endblock %}
+            </nav>
+            {% endif %}
+            {% endblock %}
+        </div>
+        {% block nav-global %}{% endblock %}
+    </header>
+    {% endif %}
+
+ 
+
+    <!-- Main -->
+    <main class="pink-main" id="main">
+        {% if not is_popup and breadcrumbs %}
+            <nav aria-label="{% translate 'Breadcrumbs' %}" class="pink-breadcrumb">
+                <div class="pink-breadcrumb-container">
+                    {% for breadcrumb in breadcrumbs %}
+                        {% if not forloop.last %}
+                            <a href="{{ breadcrumb.url }}" class="pink-breadcrumb-link">{{ breadcrumb.title }}</a>
+                        {% else %}
+                            <span class="pink-breadcrumb-current">{{ breadcrumb.title }}</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </nav>
+        {% endif %}
+        
+        <div class="pink-content-wrapper" style="max-width: 1400px; margin: 0 auto;">
+            {% block messages %}
+                {% if messages %}
+                <div class="pink-messages">
+                    {% for message in messages %}
+                    <div class="pink-message {% if message.tags %}pink-message-{{ message.tags }}{% endif %}">
+                        {{ message|capfirst }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endblock messages %}
+            <script>
+            (function(){
+              try {
+                var qs = new URLSearchParams(window.location.search || '');
+                var hash = (window.location.hash || '').replace('#','');
+                var isPublished = qs.get('published') === '1' || hash === 'published';
+                var msgsWrap = document.querySelector('.pink-messages');
+                var msgs = document.querySelectorAll('.pink-messages .pink-message');
+                var txt = '';
+                var isSuccess = false;
+                var isError = false;
+                if (msgs && msgs.length > 0) {
+                  var first = msgs[0];
+                  txt = first.textContent ? first.textContent.trim() : '';
+                  isSuccess = first.classList.contains('pink-message-success');
+                  isError = first.classList.contains('pink-message-error');
+                }
+                if (!isPublished && (!msgs || msgs.length === 0)) return;
+                if (msgsWrap) msgsWrap.style.display = 'none';
+                var overlay = document.createElement('div');
+                overlay.className = 'pink-modal-overlay';
+                overlay.style.position = 'fixed';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.right = '0';
+                overlay.style.bottom = '0';
+                overlay.style.background = 'rgba(0,0,0,0.35)';
+                overlay.style.zIndex = '1040';
+                overlay.style.display = 'flex';
+                overlay.style.alignItems = 'center';
+                overlay.style.justifyContent = 'center';
+                var modal = document.createElement('div');
+                modal.className = 'pink-modal';
+                modal.style.background = '#fff';
+                modal.style.border = '1px solid #e9b6c6';
+                modal.style.borderRadius = '16px';
+                modal.style.boxShadow = '0 8px 32px rgba(255, 107, 157, 0.2)';
+                modal.style.padding = '24px';
+                modal.style.width = '90%';
+                modal.style.maxWidth = '420px';
+                var title = document.createElement('div');
+                title.className = 'pink-modal-title';
+                title.style.fontSize = '1.25rem';
+                title.style.fontWeight = '700';
+                title.style.color = '#1e1e1e';
+                title.style.marginBottom = '12px';
+                var content = document.createElement('div');
+                content.className = 'pink-modal-content';
+                content.style.fontSize = '1rem';
+                content.style.color = '#3a3a3a';
+                content.style.marginBottom = '20px';
+                if (isPublished) {
+                  isSuccess = true;
+                  title.textContent = '文章发布成功';
+                  content.textContent = '已成功发布，点击“知道了”返回首页';
+                } else if (isSuccess) {
+                  title.textContent = isPublished ? '文章发布成功' : '操作成功';
+                  content.textContent = txt || '操作已完成，点击“知道了”继续';
+                } else if (isError) {
+                  title.textContent = '操作失败';
+                  content.innerHTML = '<div style="word-break: break-all;">' + (txt || '出现错误') + '</div>' +
+                    '<div style="margin-top:8px;color:var(--text-light);font-size:12px;">错误信息已记录到服务器日志</div>';
+                } else {
+                  title.textContent = '提示';
+                  content.textContent = txt;
+                }
+                var actions = document.createElement('div');
+                actions.className = 'pink-modal-actions';
+                actions.style.display = 'flex';
+                actions.style.justifyContent = 'flex-end';
+                var btn = document.createElement('button');
+                btn.className = 'pink-btn pink-btn-primary';
+                btn.style.background = 'linear-gradient(135deg, #d64b78 0%, #b43d66 100%)';
+                btn.style.color = '#fff';
+                btn.style.border = 'none';
+                btn.style.borderRadius = '12px';
+                btn.style.padding = '10px 16px';
+                btn.style.fontWeight = '600';
+                btn.textContent = '知道了';
+                btn.addEventListener('click', function(){
+                  document.body.removeChild(overlay);
+                  if (isPublished || isSuccess) {
+                    window.location.href = '{% url "custom_admin:index" %}';
+                  }
+                });
+                actions.appendChild(btn);
+                modal.appendChild(title);
+                modal.appendChild(content);
+                modal.appendChild(actions);
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+              } catch (e) {}
+            })();
+            </script>
+            
+            <!-- Content -->
+            <div id="content" class="pink-content {% block coltype %}colM{% endblock %}">
+                {% block pretitle %}{% endblock %}
+                {% block content_title %}{% if title %}<h1 class="pink-content-title">{{ title }}</h1>{% endif %}{% endblock %}
+                {% block content %}
+                {% block object-tools %}{% endblock object-tools %}
+                <div class="pink-content-body">
+                    {{ content }}
+                </div>
+                {% endblock %}
+                {% block sidebar %}{% endblock %}
+            </div>
+            <!-- END Content -->
+            
+            {% block footer %}<footer id="footer" class="pink-footer"></footer>{% endblock %}
+        </div>
+    </main>
+</div>
+<!-- END Container -->
+
+<script>
+// 移动端导航菜单切换
+document.addEventListener('DOMContentLoaded', function() {
+    const navbarToggle = document.getElementById('navbar-toggle');
+    const navbarNav = document.getElementById('navbar-nav');
+    
+    if (navbarToggle && navbarNav) {
+        navbarToggle.addEventListener('click', function() {
+            navbarNav.classList.toggle('pink-active');
+        });
+        
+        // 点击导航链接后关闭菜单
+        const navLinks = navbarNav.querySelectorAll('.pink-navbar-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                navbarNav.classList.remove('pink-active');
+            });
+        });
+    }
+    
+    // 响应式表格处理
+    const tables = document.querySelectorAll('.pink-table');
+    tables.forEach(table => {
+        if (window.innerWidth <= 768) {
+            table.classList.add('pink-table-responsive');
+            
+            // 为每个td添加data-label属性
+            const headers = table.querySelectorAll('thead th');
+            const rows = table.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach((cell, index) => {
+                    if (headers[index]) {
+                        cell.setAttribute('data-label', headers[index].textContent.trim());
+                    }
+                });
+            });
+        }
+    });
+    
+    // 窗口大小改变时重新处理表格
+    window.addEventListener('resize', function() {
+        tables.forEach(table => {
+            if (window.innerWidth <= 768) {
+                table.classList.add('pink-table-responsive');
+            } else {
+                table.classList.remove('pink-table-responsive');
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>

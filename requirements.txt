@@ -1,0 +1,6 @@
+Django==5.2.7
+Pillow>=10.3.0
+django-markdownx>=4.0.7
+Markdown>=3.6
+bleach>=6.1.0
+

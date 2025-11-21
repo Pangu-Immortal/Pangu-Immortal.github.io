@@ -1,0 +1,279 @@
+{% extends "admin/pink_base.html" %}
+{% load i18n static %}
+
+{% block title %}确认删除 - 盘古大仙洞府{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">🌸 盘古大仙洞府后台</a></h1>
+{% endblock %}
+
+{% block content_title %}<h1>⚠️ 确认删除</h1>{% endblock %}
+
+{% block content %}
+<div class="delete-confirmation-container">
+    <div class="warning-card">
+        <div class="warning-icon">⚠️</div>
+        <h2>确定要删除吗？</h2>
+        <p class="warning-text">此操作不可恢复，删除后将无法找回数据。</p>
+    </div>
+
+    <div class="delete-info">
+        <h3>将要删除的内容：</h3>
+        <div class="item-details">
+            {% if object %}
+                {% if object.title %}
+                    <div class="detail-item">
+                        <span class="detail-label">文章标题：</span>
+                        <span class="detail-value">{{ object.title }}</span>
+                    </div>
+                {% elif object.name %}
+                    <div class="detail-item">
+                        <span class="detail-label">标签名称：</span>
+                        <span class="detail-value">{{ object.name }}</span>
+                    </div>
+                {% elif object.nickname %}
+                    <div class="detail-item">
+                        <span class="detail-label">评论者：</span>
+                        <span class="detail-value">{{ object.nickname }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">评论内容：</span>
+                        <span class="detail-value">{{ object.content|truncatewords:20 }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if object.created_at %}
+                    <div class="detail-item">
+                        <span class="detail-label">创建时间：</span>
+                        <span class="detail-value">{{ object.created_at|date:"Y-m-d H:i" }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if object.published_at %}
+                    <div class="detail-item">
+                        <span class="detail-label">发布时间：</span>
+                        <span class="detail-value">{{ object.published_at|date:"Y-m-d H:i" }}</span>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        
+        {% if deleted_objects %}
+        <div class="related-objects">
+            <h4>同时删除的相关内容：</h4>
+            <ul class="deleted-list">
+                {% for deleted_object in deleted_objects %}
+                <li>{{ deleted_object }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <form method="post" class="delete-form">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button type="submit" class="delete-confirm-btn">
+                <span>🗑️</span>
+                确认删除
+            </button>
+            <a href="javascript:history.back()" class="cancel-btn">
+                <span>❌</span>
+                取消
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+.delete-confirmation-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.warning-card {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    border: 2px solid #f44336;
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px rgba(244, 67, 54, 0.15);
+}
+
+.warning-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.warning-card h2 {
+    color: #d32f2f;
+    font-weight: 600;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+}
+
+.warning-text {
+    color: #c62828;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.delete-info {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px var(--shadow-soft);
+    border: 1px solid var(--pink-lighter);
+}
+
+.delete-info h3 {
+    color: var(--pink-dark);
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--pink-lighter);
+}
+
+.item-details {
+    margin-bottom: 25px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--pink-lighter);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: var(--text-medium);
+    font-weight: 500;
+    min-width: 100px;
+}
+
+.detail-value {
+    color: var(--text-dark);
+    font-weight: 600;
+    text-align: right;
+    flex: 1;
+    margin-left: 20px;
+}
+
+.related-objects {
+    background: var(--warm-white);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--pink-lighter);
+}
+
+.related-objects h4 {
+    color: var(--pink-dark);
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.deleted-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.deleted-list li {
+    padding: 8px 0;
+    color: var(--text-medium);
+    border-bottom: 1px dashed var(--pink-lighter);
+}
+
+.deleted-list li:last-child {
+    border-bottom: none;
+}
+
+.delete-form {
+    text-align: center;
+}
+
+.form-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+.delete-confirm-btn {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 32px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.delete-confirm-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(244, 67, 54, 0.4);
+}
+
+.cancel-btn {
+    background: var(--warm-gray);
+    color: var(--text-dark);
+    text-decoration: none;
+    border-radius: 12px;
+    padding: 16px 32px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px var(--shadow-soft);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--pink-lighter);
+}
+
+.cancel-btn:hover {
+    background: var(--pink-lighter);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--shadow-soft);
+    color: var(--text-dark);
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    .form-actions {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .delete-confirm-btn, .cancel-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .detail-value {
+        margin-left: 0;
+        text-align: left;
+    }
+}
+</style>
+{% endblock %}

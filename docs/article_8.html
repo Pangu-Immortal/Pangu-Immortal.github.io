@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>aldjoajdow09</title>
+    <link rel="stylesheet" href="https://unpkg.com/normalize.css/normalize.css">
+    <style>
+        /* ==================== 全局样式 ==================== */
+        :root {
+            color-scheme: dark;
+            --color-bg-deep: #05070d;
+            --color-bg-gradient-start: #090d16;
+            --color-text-light: #d9e6ff;
+            --color-text-sky: #8bc8ff;
+            --color-text-cyan: #38e4d8;
+            --color-card-bg: rgba(10, 18, 32, 0.78);
+            --color-card-border: rgba(63, 101, 152, 0.35);
+            --color-nav-bg: rgba(7, 12, 22, 0.9);
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: radial-gradient(circle at center, var(--color-bg-gradient-start), var(--color-bg-deep) 75%);
+            color: var(--color-text-light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.25s ease;
+        }
+
+        /* ==================== 字母雨背景 ==================== */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* ==================== 导航栏 ==================== */
+        .brand {
+            padding: 36px 24px 16px;
+            text-align: center;
+            letter-spacing: 0.4em;
+            position: relative;
+            z-index: 10;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 32px;
+            color: var(--color-text-sky);
+            text-shadow: 0 0 15px currentColor, 0 0 30px currentColor, 0 0 45px currentColor;
+            font-weight: 600;
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            padding: 16px 24px 22px;
+            position: sticky;
+            top: 0;
+            background: var(--color-nav-bg);
+            backdrop-filter: blur(14px);
+            z-index: 10;
+            border-bottom: 1px solid rgba(139, 200, 255, 0.1);
+        }
+
+        .nav a {
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.82);
+            transition: all 0.25s ease;
+            font-weight: 500;
+        }
+
+        .nav a:hover {
+            color: #ffffff;
+            background: rgba(139, 200, 255, 0.1);
+        }
+
+        .nav a.active {
+            color: #04121c;
+            background: linear-gradient(135deg, #7bd0ff, #38e4d8);
+            box-shadow: 0 10px 26px rgba(78, 208, 223, 0.32);
+            font-weight: 600;
+        }
+
+        /* ==================== 容器 ==================== */
+        .container {
+            max-width: 980px;
+            margin: 32px auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ==================== 卡片 ==================== */
+        .card {
+            background: var(--color-card-bg);
+            border: 1px solid var(--color-card-border);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 12px 35px rgba(9, 18, 33, 0.45);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 45px rgba(9, 18, 33, 0.6);
+        }
+
+        /* ==================== 按钮 ==================== */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border-radius: 32px;
+            background: linear-gradient(135deg, #78d7ff, #2ed6b5);
+            color: #071522;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            transition: all 0.25s ease;
+            border: none;
+            cursor: pointer;
+            text-shadow: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(78, 212, 220, 0.32);
+        }
+
+        /* ==================== 标签 ==================== */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            margin: 4px;
+            border-radius: 12px;
+            background: rgba(139, 200, 255, 0.1);
+            color: var(--color-text-sky);
+            font-size: 13px;
+            border: 1px solid rgba(139, 200, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background: rgba(139, 200, 255, 0.2);
+            border-color: rgba(139, 200, 255, 0.4);
+        }
+
+        /* ==================== 页脚 ==================== */
+        footer {
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 13px;
+            opacity: 0.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ==================== 响应式 ==================== */
+        @media (max-width: 768px) {
+            .brand h1 {
+                font-size: 24px;
+                letter-spacing: 0.3em;
+            }
+
+            .nav {
+                gap: 8px;
+                padding: 12px 16px;
+            }
+
+            .nav a {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .container {
+                padding: 0 16px;
+                margin: 20px auto;
+            }
+
+            .card {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 字母雨背景 -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- 导航栏 -->
+    <div class="brand">
+        <h1>盘古大仙洞府</h1>
+    </div>
+    <nav class="nav">
+        
+        <a href="index.html" class="">首页</a>
+        <a href="list.html" class="active">动态</a>
+        <a href="board.html" class="">留言板</a>
+        <a href="about.html" class="">关于作者</a>
+        
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container">
+        
+<style>
+    /* ==================== 文章详情样式 ==================== */
+    .detail-wrapper {
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: 0 20px 80px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--color-text-sky);
+        font-size: 14px;
+        margin-bottom: 32px;
+        transition: color 0.2s ease;
+    }
+
+    .back-link:hover {
+        color: var(--color-text-cyan);
+    }
+
+    .back-link svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .article-container {
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-card-border);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(9, 18, 33, 0.5);
+        margin-bottom: 32px;
+        backdrop-filter: blur(14px);
+    }
+
+    .article-cover {
+        width: 100%;
+        height: 320px;
+        object-fit: cover;
+    }
+
+    .article-body {
+        padding: 32px;
+    }
+
+    .article-header {
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(139, 200, 255, 0.1);
+    }
+
+    .article-title {
+        font-size: clamp(28px, 5vw, 38px);
+        font-weight: 700;
+        color: var(--color-text-sky);
+        margin: 0 0 20px;
+        line-height: 1.3;
+    }
+
+    .article-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-size: 14px;
+        opacity: 0.75;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .meta-item svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .article-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    /* ==================== 文章内容样式 ==================== */
+    .article-content {
+        line-height: 1.85;
+        color: #e6edf7;
+        font-size: 16px;
+    }
+
+    .article-content h1, .article-content h2, .article-content h3,
+    .article-content h4, .article-content h5, .article-content h6 {
+        color: var(--color-text-sky);
+        margin-top: 32px;
+        margin-bottom: 16px;
+        font-weight: 600;
+    }
+
+    .article-content h1 { font-size: 32px; }
+    .article-content h2 { font-size: 28px; }
+    .article-content h3 { font-size: 24px; }
+    .article-content h4 { font-size: 20px; }
+
+    .article-content p {
+        margin: 16px 0;
+    }
+
+    .article-content a {
+        color: var(--color-text-sky);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(139, 200, 255, 0.3);
+        transition: all 0.2s ease;
+    }
+
+    .article-content a:hover {
+        color: var(--color-text-cyan);
+        border-bottom-color: var(--color-text-cyan);
+    }
+
+    .article-content code {
+        background: rgba(110, 118, 129, 0.4);
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-family: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', monospace;
+        font-size: 14px;
+    }
+
+    .article-content pre {
+        background: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 12px;
+        padding: 20px;
+        overflow-x: auto;
+        margin: 24px 0;
+    }
+
+    .article-content pre code {
+        background: none;
+        padding: 0;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .article-content blockquote {
+        border-left: 4px solid var(--color-text-sky);
+        padding-left: 20px;
+        margin: 24px 0;
+        color: #8b949e;
+        font-style: italic;
+    }
+
+    .article-content ul, .article-content ol {
+        padding-left: 28px;
+        margin: 16px 0;
+    }
+
+    .article-content li {
+        margin: 10px 0;
+    }
+
+    .article-content table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 24px 0;
+        border: 1px solid var(--color-card-border);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .article-content th,
+    .article-content td {
+        border: 1px solid var(--color-card-border);
+        padding: 12px 16px;
+        text-align: left;
+    }
+
+    .article-content th {
+        background: rgba(139, 200, 255, 0.1);
+        font-weight: 600;
+        color: var(--color-text-sky);
+    }
+
+    .article-content img {
+        max-width: 100%;
+        border-radius: 12px;
+        margin: 24px 0;
+    }
+
+    /* ==================== 评论区样式 ==================== */
+    .comments-container {
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-card-border);
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 12px 40px rgba(9, 18, 33, 0.5);
+        backdrop-filter: blur(14px);
+    }
+
+    .comments-title {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--color-text-sky);
+        margin-bottom: 24px;
+    }
+
+    .comment-form {
+        margin-bottom: 32px;
+    }
+
+    .comment-hint {
+        font-size: 13px;
+        opacity: 0.7;
+        margin-bottom: 16px;
+    }
+
+    .comment-textarea {
+        width: 100%;
+        border-radius: 16px;
+        padding: 16px;
+        border: 1px solid rgba(139, 200, 255, 0.3);
+        background: rgba(8, 14, 24, 0.8);
+        color: #e9f4ff;
+        font-size: 14px;
+        line-height: 1.6;
+        resize: vertical;
+        outline: none;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .comment-textarea:focus {
+        border-color: var(--color-text-sky);
+        box-shadow: 0 0 0 3px rgba(139, 200, 255, 0.1);
+    }
+
+    .comment-textarea::placeholder {
+        color: rgba(217, 230, 255, 0.4);
+    }
+
+    .comment-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 12px;
+    }
+
+    .char-count {
+        font-size: 12px;
+        opacity: 0.5;
+    }
+
+    .comment-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .comment-item {
+        border-radius: 16px;
+        border: 1px solid rgba(139, 200, 255, 0.15);
+        background: rgba(10, 18, 32, 0.5);
+        padding: 20px;
+    }
+
+    .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .comment-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, var(--color-text-sky), var(--color-text-cyan));
+    }
+
+    .comment-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .comment-info {
+        flex: 1;
+        font-size: 14px;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        color: var(--color-text-sky);
+    }
+
+    .comment-meta {
+        display: flex;
+        gap: 8px;
+        opacity: 0.6;
+        font-size: 13px;
+        margin-top: 2px;
+    }
+
+    .comment-content {
+        font-size: 14px;
+        line-height: 1.7;
+        opacity: 0.85;
+        word-wrap: break-word;
+    }
+
+    .empty-comments {
+        text-align: center;
+        padding: 40px 20px;
+        opacity: 0.6;
+        font-size: 14px;
+    }
+
+    .comment-disabled {
+        padding: 32px 20px;
+        text-align: center;
+        opacity: 0.7;
+        font-size: 14px;
+    }
+
+    /* ==================== 响应式 ==================== */
+    @media (max-width: 768px) {
+        .detail-wrapper {
+            padding-bottom: 60px;
+        }
+
+        .article-cover {
+            height: 220px;
+        }
+
+        .article-body {
+            padding: 24px 20px;
+        }
+
+        .article-title {
+            font-size: 24px;
+        }
+
+        .comments-container {
+            padding: 24px 20px;
+        }
+
+        .article-content h1 { font-size: 26px; }
+        .article-content h2 { font-size: 22px; }
+        .article-content h3 { font-size: 20px; }
+        .article-content h4 { font-size: 18px; }
+    }
+</style>
+
+<div class="detail-wrapper">
+    <!-- 返回按钮 -->
+    
+    <a href="list.html" class="back-link">
+    
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        返回列表
+    </a>
+
+    <!-- 文章内容 -->
+    <article class="article-container">
+        
+
+        <div class="article-body">
+            <header class="article-header">
+                <h1 class="article-title">aldjoajdow09</h1>
+                <div class="article-meta">
+                    <div class="meta-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span>2025-11-14 21:11</span>
+                    </div>
+                    
+                </div>
+            </header>
+
+            <div class="article-content">
+                <p>阿珂的；阿珂的；</p>
+            </div>
+        </div>
+    </article>
+
+    <!-- 评论区 -->
+    <div class="comments-container">
+        <h3 class="comments-title">评论区</h3>
+
+        
+            <div class="comment-disabled">
+                <p>静态站点暂不支持评论功能</p>
+                <p style="margin-top: 8px; font-size: 13px;">请访问动态版本参与讨论</p>
+            </div>
+        
+    </div>
+</div>
+
+
+
+    </div>
+
+    <!-- 页脚 -->
+    <footer>© 盘古大仙洞府 - 基于 Django MTV 模式构建</footer>
+
+    <!-- 字母雨脚本 -->
+    <script>
+    (function() {
+        const canvas = document.getElementById('matrix-canvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+*/#@$&'.split('');
+
+        let dims = { w: 0, h: 0, dpr: 1, fontSize: 16 };
+        let drops = [];
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameInterval = 1000 / targetFPS;
+
+        function setup() {
+            dims = {
+                w: window.innerWidth,
+                h: window.innerHeight,
+                dpr: window.devicePixelRatio || 1,
+                fontSize: Math.max(14, Math.floor(window.innerWidth / 100))
+            };
+
+            canvas.width = dims.w * dims.dpr;
+            canvas.height = dims.h * dims.dpr;
+            ctx.setTransform(dims.dpr, 0, 0, dims.dpr, 0, 0);
+
+            const columns = Math.floor(dims.w / dims.fontSize);
+            drops = Array(columns).fill(0).map(() => Math.random() * -dims.h / dims.fontSize);
+        }
+
+        function draw(currentTime) {
+            if (currentTime - lastTime < frameInterval) {
+                requestAnimationFrame(draw);
+                return;
+            }
+            lastTime = currentTime;
+
+            ctx.fillStyle = 'rgba(3, 6, 12, 0.08)';
+            ctx.fillRect(0, 0, dims.w, dims.h);
+
+            ctx.font = dims.fontSize + 'px "JetBrains Mono", "SFMono-Regular", "Menlo", monospace';
+
+            drops.forEach((y, index) => {
+                for (let i = 0; i < 3; i++) {
+                    const charY = (y - i * 2) * dims.fontSize;
+                    if (charY > 0 && charY < dims.h) {
+                        const text = chars[Math.floor(Math.random() * chars.length)];
+                        const x = index * dims.fontSize;
+                        const opacity = i === 0 ? 0.95 : 0.7 - (i * 0.2);
+                        const brightness = i === 0 ? 75 : 65 - (i * 10);
+
+                        ctx.fillStyle = `hsla(${190 + (index % 40)}, 90%, ${brightness}%, ${opacity})`;
+                        ctx.fillText(text, x, charY);
+                    }
+                }
+
+                if (y * dims.fontSize > dims.h + dims.fontSize * 5) {
+                    drops[index] = Math.random() > 0.98 ? Math.random() * -dims.h / dims.fontSize : -dims.fontSize;
+                } else {
+                    drops[index] += 0.5 + Math.random() * 0.7;
+                }
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        setup();
+
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(setup, 100);
+        });
+
+        requestAnimationFrame(draw);
+    })();
+    </script>
+</body>
+</html>

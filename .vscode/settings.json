@@ -1,0 +1,50 @@
+{
+    // Python 解释器配置
+    "python.defaultInterpreterPath": "${env:HOME}/miniconda3/envs/RunProject/bin/python",
+
+    // Django 配置
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}"
+    ],
+
+    // 代码格式化
+    "python.formatting.provider": "black",
+    "editor.formatOnSave": false,
+
+    // Linting
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+
+    // 终端配置
+    "terminal.integrated.env.osx": {
+        "PYTHONUNBUFFERED": "1",
+        "DJANGO_SETTINGS_MODULE": "RunProject.settings"
+    },
+    "terminal.integrated.env.linux": {
+        "PYTHONUNBUFFERED": "1",
+        "DJANGO_SETTINGS_MODULE": "RunProject.settings"
+    },
+
+    // 文件排除
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/.pytest_cache": true,
+        "**/.mypy_cache": true,
+        "**/.DS_Store": true
+    },
+
+    // 文件关联
+    "files.associations": {
+        "*.html": "html",
+        "**/templates/**/*.html": "django-html",
+        "**/templates/**": "django-txt"
+    },
+
+    // Emmet 支持 Django 模板
+    "emmet.includeLanguages": {
+        "django-html": "html"
+    }
+}

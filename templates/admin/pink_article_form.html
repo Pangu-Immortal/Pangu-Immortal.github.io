@@ -1,0 +1,488 @@
+{% extends "admin/pink_base.html" %}
+{% load i18n static admin_urls %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block content_title %}{{ title }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+{{ adminform.form.media }}
+<style>
+/* 文章编辑页面专用样式 - 现代化设计 */
+.article-form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.article-form-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e5e7eb;
+}
+
+.article-form-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.article-form-section .help {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+/* 表单字段样式 */
+.form-row {
+    margin-bottom: 20px;
+}
+
+.form-row label {
+    display: block;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-row input[type="text"],
+.form-row input[type="file"],
+.form-row textarea,
+.form-row select {
+  width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: #fff;
+  box-sizing: border-box;
+}
+
+.form-row input[type="text"]:focus,
+.form-row textarea:focus,
+.form-row select:focus {
+  outline: none;
+    border-color: #ff6b9d;
+  box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+}
+
+.form-row textarea {
+    min-height: 300px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+/* Markdown编辑器容器 */
+.markdownx-wrapper {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* 封面图片预览 */
+.cover-preview {
+    margin-top: 12px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px dashed #d1d5db;
+    text-align: center;
+}
+
+.cover-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* 标签选择器 */
+.filtered {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.selector {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.selector h2 {
+    background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
+    color: #fff;
+    padding: 12px 16px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.selector select {
+    width: 100%;
+    border: none;
+    padding: 8px;
+    font-size: 13px;
+}
+
+.selector-available,
+.selector-chosen {
+    min-height: 200px;
+}
+
+.selector-chooser {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 8px;
+}
+
+.selector-chooser a {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #ff6b9d;
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.selector-chooser a:hover {
+    background: #ff5a8a;
+    transform: scale(1.05);
+}
+
+/* 复选框样式 */
+.form-row .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.form-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #ff6b9d;
+}
+
+/* 按钮组 */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding: 24px;
+    background: #f9fafb;
+    border-radius: 12px;
+    margin-top: 24px;
+    border: 1px solid #e5e7eb;
+}
+
+.form-actions button,
+.form-actions input[type="submit"] {
+    padding: 10px 24px;
+  border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.form-actions .btn-cancel {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.form-actions .btn-cancel:hover {
+    background: #e5e7eb;
+}
+
+.form-actions .btn-save {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.form-actions .btn-save:hover {
+    background: #2563eb;
+}
+
+.form-actions .btn-continue {
+    background: #8b5cf6;
+    color: #fff;
+}
+
+.form-actions .btn-continue:hover {
+    background: #7c3aed;
+}
+
+.form-actions .btn-publish {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    font-weight: 600;
+}
+
+.form-actions .btn-publish:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* 错误提示 */
+.errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0 0;
+}
+
+.errorlist li {
+    color: #ef4444;
+    font-size: 13px;
+    padding: 8px 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    margin-bottom: 4px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .article-form-container {
+        padding: 12px;
+    }
+    
+    .article-form-section {
+        padding: 16px;
+    }
+    
+    .filtered {
+    grid-template-columns: 1fr;
+  }
+  
+    .selector-chooser {
+        flex-direction: row;
+        justify-content: center;
+        padding: 12px 0;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions button,
+    .form-actions input[type="submit"] {
+        width: 100%;
+    }
+}
+
+/* 加载状态 */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #ff6b9d;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="article-form-container">
+    <form method="post" enctype="multipart/form-data" id="article-form" novalidate>
+        {% csrf_token %}
+        
+        {% if adminform.form.non_field_errors %}
+        <div class="errorlist">
+            {% for error in adminform.form.non_field_errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% for fieldset in adminform %}
+            <div class="article-form-section">
+                {% if fieldset.name %}
+                <h3>{{ fieldset.name }}</h3>
+                {% if fieldset.description %}
+                <p class="help">{{ fieldset.description }}</p>
+                {% endif %}
+                {% endif %}
+                
+                {% for line in fieldset %}
+                    <div class="form-row">
+                        {% for field in line %}
+                            <div>
+                                {% if field.is_checkbox %}
+                                    <div class="checkbox-row">
+                                        {{ field.field }}
+                                        <label for="{{ field.field.id_for_label }}">{{ field.field.label }}</label>
+                                    </div>
+                                {% else %}
+                                    <label for="{{ field.field.id_for_label }}">
+                                        {{ field.field.label }}
+                                        {% if field.field.field.required %}<span style="color: #ef4444;">*</span>{% endif %}
+                                    </label>
+                                    {{ field.field }}
+                                {% endif %}
+                                
+                                {% if field.field.help_text %}
+                                <p class="help">{{ field.field.help_text }}</p>
+                                {% endif %}
+                                
+                                {% if field.field.errors %}
+                                <ul class="errorlist">
+                                    {% for error in field.field.errors %}
+                                    <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <!-- 封面预览 -->
+        {% if original and original.cover %}
+        <div class="article-form-section">
+            <h3>当前封面</h3>
+            <div class="cover-preview">
+                <img src="{{ original.cover.url }}" alt="封面预览" id="current-cover">
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="window.location.href='{% url 'custom_admin:index' %}'">取消</button>
+            <input type="submit" class="btn-save" name="_save" value="💾 保存">
+            <input type="submit" class="btn-publish" id="publish-btn" name="_publish" value="🚀 发布文章">
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('article-form');
+    const coverInput = document.querySelector('input[type="file"][name="cover"]');
+    
+    // 封面图片预览
+    if (coverInput) {
+        coverInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    let preview = document.getElementById('cover-preview');
+                    if (!preview) {
+                        preview = document.createElement('div');
+                        preview.id = 'cover-preview';
+                        preview.className = 'cover-preview';
+                        coverInput.parentNode.appendChild(preview);
+                    }
+                    preview.innerHTML = '<img src="' + e.target.result + '" alt="封面预览">';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // 发布按钮点击处理 - 只设置字段，不验证
+    const publishBtn = document.getElementById('publish-btn');
+    if (publishBtn) {
+        publishBtn.addEventListener('click', function() {
+            // 设置is_hidden为false（发布）
+            const isHidden = document.querySelector('[name="is_hidden"]');
+            if (isHidden && isHidden.type === 'checkbox') {
+                isHidden.checked = false;
+            }
+        });
+    }
+    
+    // 表单提交处理 - 完全移除验证，直接提交
+    form.addEventListener('submit', function(e) {
+        // 只显示加载状态，不阻止提交
+        const submitBtn = e.submitter;
+        if (submitBtn && submitBtn.type === 'submit') {
+            submitBtn.value = '⏳ 提交中...';
+            submitBtn.disabled = true;
+            const allSubmitBtns = form.querySelectorAll('input[type="submit"]');
+            allSubmitBtns.forEach(btn => { btn.disabled = true; });
+        }
+        // 不调用 preventDefault()，让表单直接提交
+    });
+    
+    // 监听表单错误（如果有验证错误，Django会重新渲染表单）
+    window.addEventListener('load', function() {
+        console.log('页面加载完成');
+        
+        // 检查错误
+        const errorList = document.querySelector('.errorlist');
+        if (errorList) {
+            const errorText = errorList.textContent.trim();
+            if (errorText) {
+                console.error('表单验证失败：', errorText);
+                alert('❌ 表单验证失败：' + errorText);
+            }
+        }
+        
+        // 检查成功消息
+        const successMsg = document.querySelector('.pink-message-success, .messagelist .success');
+        if (successMsg) {
+            const msgText = successMsg.textContent.trim();
+            if (msgText) { alert(msgText); }
+        }
+    });
+
+    // 键盘快捷键
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + S 保存
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            const saveBtn = document.querySelector('input[name="_save"]');
+            if (saveBtn) saveBtn.click();
+        }
+    });
+    
+    // 自动保存提示（可选）
+    let autoSaveTimer;
+    const inputs = form.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            // 可以在这里添加自动保存逻辑
+        });
+    });
+});
+</script>
+{% endblock %}
