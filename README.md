@@ -3,7 +3,8 @@
 > Django + GitHub Pages 静态博客系统
 
 [![Django](https://img.shields.io/badge/Django-5.0-green.svg)](https://www.djangoproject.com/)
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.14-blue.svg)](https://www.python.org/)
+[![Conda](https://img.shields.io/badge/Conda-RunProject-brightgreen.svg)](https://docs.conda.io/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## 🌟 特性
@@ -26,6 +27,8 @@ cd Pangu-Immortal.github.io
 
 ### 2. 配置 Conda 环境
 
+> **⚠️ 重要**：本项目必须在 `RunProject` conda 环境中运行，Python 版本为 3.14
+
 #### 初始化 Conda（首次使用需要）
 
 ```bash
@@ -38,35 +41,52 @@ source ~/.bashrc   # bash 用户
 source ~/.zshrc    # zsh 用户
 ```
 
-#### 激活 Conda 环境
+#### 创建项目专属环境（如果尚未创建）
 
 ```bash
-# 激活 base 环境
-conda activate base
+# 创建名为 RunProject 的 Python 3.14 环境
+conda create -n RunProject python=3.14 -y
 
-# 或激活项目特定环境（如果已创建）
-conda activate your_env_name
+# 列出所有环境，确认创建成功
+conda env list
+```
+
+#### 激活 RunProject 环境
+
+```bash
+# 激活项目环境（所有后续操作都必须在此环境中）
+conda activate RunProject
 ```
 
 #### 验证环境
 
 ```bash
-# 检查 Python 版本
+# 检查当前环境名称（应显示 RunProject）
+echo $CONDA_DEFAULT_ENV
+
+# 检查 Python 版本（应显示 3.14.x）
 python --version
 
-# 检查 conda 环境
+# 检查 conda 环境列表（RunProject 前应有 * 标记）
 conda info --envs
 ```
 
 ### 3. 安装依赖
 
 ```bash
+# 确保在 RunProject 环境中
+conda activate RunProject
+
+# 安装项目依赖
 pip install -r requirements.txt
 ```
 
 ### 4. 配置环境变量
 
 ```bash
+# 确保在 RunProject 环境中
+conda activate RunProject
+
 # 使用项目提供的环境配置脚本
 source scripts/dev.sh
 ```
@@ -74,6 +94,10 @@ source scripts/dev.sh
 ### 5. 初始化数据库
 
 ```bash
+# 确保在 RunProject 环境中
+conda activate RunProject
+source scripts/dev.sh
+
 # 运行数据库迁移
 python manage.py migrate
 
@@ -84,6 +108,11 @@ python manage.py createsuperuser
 ### 6. 启动开发服务器
 
 ```bash
+# 确保在 RunProject 环境中
+conda activate RunProject
+source scripts/dev.sh
+
+# 启动服务器
 python manage.py runserver
 ```
 
@@ -94,35 +123,42 @@ python manage.py runserver
 
 ## 📝 发布文章流程
 
+> **⚠️ 所有操作必须在 RunProject conda 环境中执行**
+
 ### 方式一：完整手动流程
 
 ```bash
-# 1. 确保在 conda 环境中
-conda activate base
+# 1. 激活 RunProject 环境并加载配置
+conda activate RunProject
 source scripts/dev.sh
 
-# 2. 访问后台创建/编辑文章
+# 2. 启动开发服务器（如果未启动）
+python manage.py runserver
+
+# 3. 访问后台创建/编辑文章
 # 打开浏览器：http://127.0.0.1:8000/backend/
 # 使用管理员账号登录，创建或编辑文章
 
-# 3. 生成静态站点
+# 4. 生成静态站点
 python manage.py generate_static_site
 
-# 4. 提交并推送到 GitHub
+# 5. 提交并推送到 GitHub
 git add .
 git commit -m "📝 新增文章：文章标题"
 git push origin main
 ```
 
-### 方式二：直接操作数据库
+### 方式二：直接操作数据库（高级用户）
 
 ```bash
-# 进入 Django Shell
-conda activate base
+# 1. 激活 RunProject 环境并加载配置
+conda activate RunProject
 source scripts/dev.sh
+
+# 2. 进入 Django Shell
 python manage.py shell
 
-# 在 Shell 中创建文章
+# 3. 在 Shell 中创建文章
 from app.models import Article, Tag
 from django.utils import timezone
 
@@ -139,9 +175,9 @@ article = Article.objects.create(
 )
 article.tags.add(tag1, tag2)
 
-# 退出 Shell（Ctrl+D）
+# 退出 Shell（Ctrl+D 或 exit()）
 
-# 生成静态站点并推送
+# 4. 生成静态站点并推送
 python manage.py generate_static_site
 git add .
 git commit -m "📝 新增文章：文章标题"
@@ -169,31 +205,46 @@ git push origin main
 ## 🛠️ 技术栈
 
 - **后端**：Django 5.0
+- **Python**：3.14
 - **数据库**：SQLite
 - **Markdown**：MarkdownX
 - **样式**：CSS3 + 动画
 - **部署**：GitHub Pages
-- **环境管理**：Conda + 自定义环境脚本
+- **环境管理**：Conda (RunProject 环境) + 自定义环境脚本
 
 ## ⚙️ 常用命令
+
+> **⚠️ 所有命令必须在 RunProject conda 环境中执行**
 
 ### 环境相关
 
 ```bash
-# 激活 conda 环境
-conda activate base
+# 激活 RunProject 环境（所有操作的第一步）
+conda activate RunProject
 
 # 加载项目环境变量
 source scripts/dev.sh
 
-# 查看当前环境
+# 查看当前环境（应显示 RunProject 前有 * 标记）
 conda info --envs
+
+# 查看 Python 路径（应指向 RunProject 环境）
 which python
+
+# 查看 Python 版本（应显示 3.14.x）
+python --version
+
+# 查看当前激活的环境名称
+echo $CONDA_DEFAULT_ENV
 ```
 
 ### 数据库相关
 
 ```bash
+# 激活环境（如果尚未激活）
+conda activate RunProject
+source scripts/dev.sh
+
 # 创建迁移文件
 python manage.py makemigrations
 
@@ -210,6 +261,10 @@ python manage.py shell
 ### 静态文件生成
 
 ```bash
+# 激活环境（如果尚未激活）
+conda activate RunProject
+source scripts/dev.sh
+
 # 生成静态站点到 docs/ 目录
 python manage.py generate_static_site
 
@@ -238,13 +293,18 @@ git log --oneline -10
 
 ## 🔧 故障排查
 
-### 问题1：无法找到 python 命令
+### 问题1：无法找到 python 命令或 Python 版本不对
 
-**原因**：未激活 conda 环境
+**原因**：未激活 RunProject conda 环境
 
 **解决**：
 ```bash
-conda activate base
+# 激活 RunProject 环境
+conda activate RunProject
+
+# 验证环境
+echo $CONDA_DEFAULT_ENV  # 应输出: RunProject
+python --version         # 应输出: Python 3.14.x
 ```
 
 ### 问题2：Django 模块未找到
@@ -253,32 +313,66 @@ conda activate base
 
 **解决**：
 ```bash
+# 确保在 RunProject 环境中
+conda activate RunProject
+
+# 加载环境变量
 source scripts/dev.sh
+
+# 重新安装依赖
 pip install -r requirements.txt
 ```
 
-### 问题3：后台无法登录
+### 问题3：conda activate 命令不可用
+
+**原因**：conda 未初始化
+
+**解决**：
+```bash
+# 初始化 conda（根据 shell 类型）
+conda init bash  # 或 conda init zsh
+
+# 重新加载配置
+source ~/.bashrc  # 或 source ~/.zshrc
+
+# 关闭并重新打开终端，然后再次尝试
+conda activate RunProject
+```
+
+### 问题4：后台无法登录
 
 **原因**：未创建管理员账号
 
 **解决**：
 ```bash
+# 在 RunProject 环境中
+conda activate RunProject
+source scripts/dev.sh
+
+# 创建超级用户
 python manage.py createsuperuser
+
 # 或使用预设账号：admin / admin123
 ```
 
-### 问题4：静态文件生成失败
+### 问题5：静态文件生成失败
 
 **原因**：数据库未迁移或文章格式错误
 
 **解决**：
 ```bash
+# 在 RunProject 环境中
+conda activate RunProject
+source scripts/dev.sh
+
+# 运行迁移
 python manage.py migrate
+
+# 生成静态站点（查看详细错误）
 python manage.py generate_static_site
-# 查看详细错误信息
 ```
 
-### 问题5：Git 推送失败
+### 问题6：Git 推送失败
 
 **原因**：权限不足或网络问题
 
@@ -289,6 +383,22 @@ git remote -v
 
 # 使用 token 推送（替换 YOUR_TOKEN）
 git push https://YOUR_TOKEN@github.com/Pangu-Immortal/Pangu-Immortal.github.io.git main
+```
+
+### 问题7：找不到 RunProject 环境
+
+**原因**：环境尚未创建
+
+**解决**：
+```bash
+# 创建 RunProject 环境
+conda create -n RunProject python=3.14 -y
+
+# 激活环境
+conda activate RunProject
+
+# 安装依赖
+pip install -r requirements.txt
 ```
 
 ## 📝 License
