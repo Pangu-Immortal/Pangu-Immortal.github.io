@@ -434,10 +434,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // 只显示加载状态，不阻止提交
         const submitBtn = e.submitter;
         if (submitBtn && submitBtn.type === 'submit') {
+            const originalValue = submitBtn.value;
             submitBtn.value = '⏳ 提交中...';
             submitBtn.disabled = true;
             const allSubmitBtns = form.querySelectorAll('input[type="submit"]');
             allSubmitBtns.forEach(btn => { btn.disabled = true; });
+
+            // 3秒后自动恢复按钮状态（防止卡住）
+            setTimeout(function() {
+                submitBtn.disabled = false;
+                submitBtn.value = originalValue;
+                allSubmitBtns.forEach(btn => { btn.disabled = false; });
+            }, 3000);
         }
         // 不调用 preventDefault()，让表单直接提交
     });
