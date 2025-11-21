@@ -220,12 +220,10 @@
         {% if is_static %}
         <a href="index.html" class="{% if current_page == 'index' %}active{% endif %}">首页</a>
         <a href="list.html" class="{% if current_page == 'list' %}active{% endif %}">动态</a>
-        <a href="board.html" class="{% if current_page == 'board' %}active{% endif %}">留言板</a>
         <a href="about.html" class="{% if current_page == 'about' %}active{% endif %}">关于作者</a>
         {% else %}
         <a href="/" class="{% if request.path == '/' %}active{% endif %}">首页</a>
         <a href="/articles/" class="{% if '/articles' in request.path %}active{% endif %}">动态</a>
-        <a href="/board/" class="{% if '/board' in request.path %}active{% endif %}">留言板</a>
         <a href="/about/" class="{% if '/about' in request.path %}active{% endif %}">关于作者</a>
         {% endif %}
     </nav>

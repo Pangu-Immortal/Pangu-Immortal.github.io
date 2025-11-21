@@ -27,19 +27,6 @@
 
             <div class="stat-card">
                 <div class="stat-icon">
-                    <i class="fas fa-comment"></i>
-                </div>
-                <div class="stat-content">
-                    <h3 class="stat-number">{{ comment_count }}</h3>
-                    <p class="stat-label">评论总数</p>
-                </div>
-                <div class="stat-trend">
-                    <i class="fas fa-arrow-up"></i>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
                     <i class="fas fa-tags"></i>
                 </div>
                 <div class="stat-content">
@@ -102,41 +89,6 @@
                         <div class="empty-state">
                             <i class="fas fa-file-alt"></i>
                             <p>暂无文章</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="recent-comments">
-                <div class="card-header">
-                    <h3>最新评论</h3>
-                    <a href="{% url 'admin:app_comment_changelist' %}" class="view-all">查看全部</a>
-                </div>
-                <div class="card-content">
-                    {% if recent_comments %}
-                        <div class="comment-list">
-                            {% for comment in recent_comments %}
-                                <div class="comment-item">
-                                    <div class="comment-header">
-                                        <strong>{{ comment.nickname }}</strong>
-                                        <span class="comment-date">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
-                                    </div>
-                                    <div class="comment-content">
-                                        {{ comment.content|truncatechars:50 }}
-                                    </div>
-                                    <div class="comment-meta">
-                                        <span class="comment-article">来自: {{ comment.article.title|truncatechars:20 }}</span>
-                                        {% if comment.is_hidden %}
-                                            <span class="status-badge status-hidden">隐藏</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="fas fa-comment"></i>
-                            <p>暂无评论</p>
                         </div>
                     {% endif %}
                 </div>
