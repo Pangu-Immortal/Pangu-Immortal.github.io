@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block title %}洞府动态{% endblock %}
+{% block content %}
+<style>
+  /* 文章列表页面样式 */
+  .articles-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* 标签侧边栏 */
+  .sidebar {
+    position: sticky;
+    top: 90px;
+    align-self: start;
+  }
+
+  .sidebar h3 {
+    margin: 0 0 20px;
+    font-size: 18px;
+    letter-spacing: 0.2em;
+    color: var(--color-text-sky);
+  }
+
+  .tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tag-link {
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 14px;
+  }
+
+  .tag-link:hover {
+    background: rgba(139, 200, 255, 0.1);
+    color: var(--color-text-sky);
+  }
+
+  .tag-link.active {
+    background: rgba(139, 200, 255, 0.15);
+    color: var(--color-text-sky);
+    font-weight: 600;
+  }
+
+  /* 文章卡片 */
+  .article-card {
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-card-border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .article-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(9, 18, 33, 0.6);
+    border-color: rgba(139, 200, 255, 0.3);
+  }
+
+  .article-title {
+    margin: 0 0 16px;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-sky);
+    letter-spacing: 0.02em;
+  }
+
+  .article-title a {
+    color: inherit;
+  }
+
+  .article-title a:hover {
+    color: var(--color-text-cyan);
+  }
+
+  .article-cover {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 16px 0;
+    object-fit: cover;
+  }
+
+  .article-summary {
+    opacity: 0.82;
+    line-height: 1.8;
+    margin: 16px 0;
+    color: var(--color-text-light);
+  }
+
+  .article-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+
+  .article-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(139, 200, 255, 0.1);
+    color: var(--color-text-sky);
+    font-size: 13px;
+    border: 1px solid rgba(139, 200, 255, 0.2);
+  }
+
+  /* 分页 */
+  .pagination {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 32px;
+    opacity: 0.85;
+  }
+
+  .pagination button,
+  .pagination a.btn-primary {
+    padding: 10px 24px;
+  }
+
+  .pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* 空状态 */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    opacity: 0.6;
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .articles-layout {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .sidebar {
+      position: static;
+      order: -1;
+    }
+
+    .sidebar h3 {
+      font-size: 16px;
+    }
+
+    .tag-list {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    .article-card {
+      padding: 20px;
+    }
+
+    .article-title {
+      font-size: 20px;
+    }
+  }
+</style>
+
+<div class="articles-layout">
+  <!-- 标签侧边栏 -->
+  <aside class="sidebar">
+    <div class="card">
+      <h3>标签筛选</h3>
+      <div class="tag-list">
+        {% if is_static %}
+          <a href="list.html" class="tag-link {% if not active_tag %}active{% endif %}">
+            📋 全部
+          </a>
+          {% for t in tags %}
+            <a href="list_tag_{{ t.name }}.html" class="tag-link {% if active_tag and active_tag.id == t.id %}active{% endif %}">
+              # {{ t.name }}
+            </a>
+          {% empty %}
+            <p style="opacity: 0.6; font-size: 14px;">暂无标签</p>
+          {% endfor %}
+        {% else %}
+          <a href="/articles/" class="tag-link {% if not active_tag %}active{% endif %}">
+            📋 全部
+          </a>
+          {% for t in tags %}
+            <a href="/articles/?tag={{ t.name }}" class="tag-link {% if active_tag and active_tag.id == t.id %}active{% endif %}">
+              # {{ t.name }}
+            </a>
+          {% empty %}
+            <p style="opacity: 0.6; font-size: 14px;">暂无标签</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </aside>
+
+  <!-- 文章列表 -->
+  <main>
+    {% for a in page_obj.object_list %}
+      <article class="article-card">
+        <h2 class="article-title">
+          {% if is_static %}
+          <a href="article_{{ a.id }}.html">{{ a.title }}</a>
+          {% else %}
+          <a href="/articles/{{ a.id }}/">{{ a.title }}</a>
+          {% endif %}
+        </h2>
+
+        {% if a.tags.all %}
+        <div class="article-meta">
+          {% for tag in a.tags.all %}
+          <span class="article-tag"># {{ tag.name }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if a.cover %}
+          {% if is_static %}
+          <img src="media/{{ a.cover }}" alt="{{ a.title }}" class="article-cover"/>
+          {% else %}
+          <img src="{{ a.cover.url }}" alt="{{ a.title }}" class="article-cover"/>
+          {% endif %}
+        {% endif %}
+
+        <p class="article-summary">{{ a.content_md|truncatechars:150 }}</p>
+
+        {% if is_static %}
+        <a href="article_{{ a.id }}.html" class="btn-primary">阅读全文 →</a>
+        {% else %}
+        <a href="/articles/{{ a.id }}/" class="btn-primary">阅读全文 →</a>
+        {% endif %}
+      </article>
+    {% empty %}
+      <div class="empty-state">
+        <p style="font-size: 18px; margin-bottom: 8px;">📭</p>
+        <p>暂无文章</p>
+      </div>
+    {% endfor %}
+
+    <!-- 分页 -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="pagination">
+      {% if is_static %}
+        {% if page_obj.has_previous %}
+          {% if page_obj.previous_page_number == 1 %}
+            {% if active_tag %}
+            <a href="list_tag_{{ active_tag.name }}.html" class="btn-primary">← 上一页</a>
+            {% else %}
+            <a href="list.html" class="btn-primary">← 上一页</a>
+            {% endif %}
+          {% else %}
+            {% if active_tag %}
+            <a href="list_tag_{{ active_tag.name }}_page_{{ page_obj.previous_page_number }}.html" class="btn-primary">← 上一页</a>
+            {% else %}
+            <a href="list_page_{{ page_obj.previous_page_number }}.html" class="btn-primary">← 上一页</a>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+
+        <span>第 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }} 页</span>
+
+        {% if page_obj.has_next %}
+          {% if active_tag %}
+          <a href="list_tag_{{ active_tag.name }}_page_{{ page_obj.next_page_number }}.html" class="btn-primary">下一页 →</a>
+          {% else %}
+          <a href="list_page_{{ page_obj.next_page_number }}.html" class="btn-primary">下一页 →</a>
+          {% endif %}
+        {% endif %}
+      {% else %}
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if active_tag %}&tag={{ active_tag.name }}{% endif %}" class="btn-primary">← 上一页</a>
+        {% endif %}
+
+        <span>第 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }} 页</span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if active_tag %}&tag={{ active_tag.name }}{% endif %}" class="btn-primary">下一页 →</a>
+        {% endif %}
+      {% endif %}
+    </nav>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

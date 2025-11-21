@@ -1,0 +1,235 @@
+{% load i18n static %}
+
+<div class="selector">
+    <div class="selector-available">
+        <h2><img src="{% static "admin/img/icon-unknown.svg" %}" alt=""> {{ available_title|default:_('Available') }} {{ verbose_name|capfirst }}</h2>
+        
+        <p class="help">{% blocktrans %}在左侧选择{{ verbose_name }}后点击右箭头添加到右侧{% endblocktrans %}</p>
+        
+        <div class="selector-filter">
+            <label for="{{ media_id }}_input">{% trans "筛选" %}</label>
+            <input type="text" id="{{ media_id }}_input" placeholder="{% trans "输入关键词筛选" %}">
+        </div>
+        
+        <select id="{{ media_id }}_from" multiple data-filter="{{ media_id }}_input" name="{{ name }}_old">
+            {% for choice in available_choices %}
+            <option value="{{ choice.0 }}"{% if choice.0 in selected_values %} selected{% endif %}>{{ choice.1 }}</option>
+            {% endfor %}
+        </select>
+        
+        <a href="#" class="selector-chooseall">{% blocktrans %}选择所有 {{ objects_name }}{% endblocktrans %}</a>
+    </div>
+    
+    <ul class="selector-chooser">
+        <li><a href="#" title="{% blocktrans %}选择{{ verbose_name }}{% endblocktrans %}" class="selector-add">&gt;</a></li>
+        <li><a href="#" title="{% blocktrans %}移除{{ verbose_name }}{% endblocktrans %}" class="selector-remove">&lt;</a></li>
+    </ul>
+    
+    <div class="selector-chosen">
+        <h2><img src="{% static "admin/img/icon-unknown.svg" %}" alt=""> {{ chosen_title|default:_('Chosen') }} {{ verbose_name|capfirst }}</h2>
+        
+        <p class="help">{% blocktrans %}在右侧选择{{ verbose_name }}后点击左箭头移回左侧{% endblocktrans %}</p>
+        
+        <div class="selector-filter">
+            <label for="{{ media_id }}_to_input">{% trans "筛选" %}</label>
+            <input type="text" id="{{ media_id }}_to_input" placeholder="{% trans "输入关键词筛选" %}">
+        </div>
+        
+        <select id="{{ media_id }}_to" multiple data-filter="{{ media_id }}_to_input" name="{{ name }}">
+            {% for choice in chosen_choices %}
+            <option value="{{ choice.0 }}"{% if choice.0 in selected_values %} selected{% endif %}>{{ choice.1 }}</option>
+            {% endfor %}
+        </select>
+        
+        <a href="#" class="selector-clearall">{% blocktrans %}清除所有 {{ objects_name }}{% endblocktrans %}</a>
+    </div>
+    
+    <div class="selector-buttons">
+        <input type="hidden" name="{{ name }}_old" value="">
+        <input type="hidden" name="{{ name }}" value="">
+    </div>
+</div>
+
+<script type="text/javascript">
+(function($) {
+    $(document).ready(function() {
+        var from_box = $('#{{ media_id }}_from');
+        var to_box = $('#{{ media_id }}_to');
+        var input = $('#{{ media_id }}_input');
+        var to_input = $('#{{ media_id }}_to_input');
+        
+        // 筛选功能
+        function filterOptions(select_box, filter_input) {
+            var filter = filter_input.val().toLowerCase();
+            select_box.find('option').each(function() {
+                var option = $(this);
+                if (option.text().toLowerCase().indexOf(filter) > -1) {
+                    option.show();
+                } else {
+                    option.hide();
+                }
+            });
+        }
+        
+        input.on('keyup', function() {
+            filterOptions(from_box, input);
+        });
+        
+        to_input.on('keyup', function() {
+            filterOptions(to_box, to_input);
+        });
+        
+        // 添加功能
+        $('.selector-add').click(function(e) {
+            e.preventDefault();
+            from_box.find('option:selected:visible').each(function() {
+                var option = $(this);
+                to_box.append(option.clone());
+                option.remove();
+            });
+        });
+        
+        // 移除功能
+        $('.selector-remove').click(function(e) {
+            e.preventDefault();
+            to_box.find('option:selected:visible').each(function() {
+                var option = $(this);
+                from_box.append(option.clone());
+                option.remove();
+            });
+        });
+        
+        // 选择所有
+        $('.selector-chooseall').click(function(e) {
+            e.preventDefault();
+            from_box.find('option:visible').each(function() {
+                var option = $(this);
+                to_box.append(option.clone());
+                option.remove();
+            });
+        });
+        
+        // 清除所有
+        $('.selector-clearall').click(function(e) {
+            e.preventDefault();
+            to_box.find('option').each(function() {
+                var option = $(this);
+                from_box.append(option.clone());
+                option.remove();
+            });
+        });
+    });
+})(django.jQuery);
+</script>
+
+<style>
+.selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.selector-available, .selector-chosen {
+    flex: 1;
+    min-width: 200px;
+}
+
+.selector h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: bold;
+    color: #7dd3fc;
+}
+
+.selector select {
+    width: 100%;
+    height: 200px;
+    background: rgba(15, 23, 42, 0.9);
+    color: #e2e8f0;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.selector-chooser {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.selector-chooser a {
+    display: block;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    color: white;
+    text-decoration: none;
+    text-align: center;
+    line-height: 30px;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.selector-chooser a:hover {
+    background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
+    transform: translateY(-1px);
+}
+
+.selector-filter {
+    margin: 10px 0;
+}
+
+.selector-filter label {
+    display: block;
+    margin-bottom: 5px;
+    color: #cbd5e1;
+    font-size: 12px;
+}
+
+.selector-filter input {
+    width: 100%;
+    background: rgba(30, 41, 59, 0.9);
+    color: #e2e8f0;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
+}
+
+.selector-filter input:focus {
+    border-color: #06b6d4;
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.3);
+    outline: none;
+}
+
+.selector .help {
+    color: #94a3b8;
+    font-size: 11px;
+    margin: 5px 0;
+    line-height: 1.4;
+}
+
+.selector-chooseall, .selector-clearall {
+    display: inline-block;
+    margin-top: 10px;
+    color: #34d399;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.selector-chooseall:hover, .selector-clearall:hover {
+    color: #6ee7b7;
+    text-decoration: underline;
+}
+
+.selector-buttons {
+    display: none;
+}
+</style>

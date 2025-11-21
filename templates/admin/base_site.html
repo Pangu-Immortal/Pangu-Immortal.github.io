@@ -1,0 +1,384 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/custom.css' %}">
+<style>
+    /* 基础样式优化 */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #e2e8f0;
+    }
+    
+    /* 头部样式 - 赛博朋克风格 */
+    #header {
+        background: linear-gradient(90deg, #0c4a6e 0%, #075985 50%, #0c4a6e 100%);
+        border-bottom: 2px solid #06b6d4;
+        color: #e0f2fe;
+        box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3);
+    }
+    
+    #branding h1 {
+        color: #fbbf24 !important;
+        font-weight: bold;
+        text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+    }
+    
+    #user-tools a {
+        color: #e0f2fe !important;
+        border-bottom: 1px solid rgba(224, 242, 254, 0.3);
+    }
+    
+    #user-tools a:hover {
+        color: #7dd3fc !important;
+        border-bottom-color: #7dd3fc;
+    }
+    
+    /* 面包屑导航 */
+    .breadcrumbs {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        color: #cbd5e1;
+    }
+    
+    .breadcrumbs a {
+        color: #7dd3fc;
+    }
+    
+    /* 侧边栏 */
+    #nav-sidebar {
+        background: rgba(15, 23, 42, 0.9);
+        border-right: 1px solid rgba(56, 189, 248, 0.2);
+    }
+    
+    .module caption {
+        background: linear-gradient(90deg, #075985 0%, #0c4a6e 100%);
+        color: #e0f2fe;
+        font-weight: bold;
+        text-transform: none;
+    }
+    
+    .module a {
+        color: #cbd5e1;
+        transition: all 0.2s ease;
+    }
+    
+    .module a:hover {
+        color: #7dd3fc;
+        background: rgba(56, 189, 248, 0.1);
+    }
+    
+    .module a.addlink {
+        color: #34d399;
+        font-weight: bold;
+    }
+    
+    .module a.addlink:hover {
+        color: #6ee7b7;
+    }
+    
+    /* 主内容区域 */
+    #content {
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(2, 8, 20, 0.4);
+    }
+    
+    /* 表单样式 */
+    .module {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 6px;
+    }
+    
+    .module h2, .module h3 {
+        color: #7dd3fc;
+        font-weight: bold;
+    }
+    
+    label {
+        color: #cbd5e1;
+        font-weight: 500;
+    }
+    
+    input[type="text"], input[type="email"], input[type="password"], 
+    input[type="url"], textarea, select {
+        background: rgba(30, 41, 59, 0.9);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        color: #e2e8f0;
+        border-radius: 4px;
+        padding: 8px 12px;
+        transition: all 0.2s ease;
+    }
+    
+    input[type="text"]:focus, input[type="email"]:focus, 
+    input[type="password"]:focus, input[type="url"]:focus, 
+    textarea:focus, select:focus {
+        border-color: #06b6d4;
+        box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.3);
+        outline: none;
+    }
+    
+    /* 按钮样式 */
+    .submit-row input[type="submit"], .button, input[type="button"] {
+        background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+    }
+    
+    .submit-row input[type="submit"]:hover, .button:hover, input[type="button"]:hover {
+        background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
+        box-shadow: 0 6px 16px rgba(6, 182, 212, 0.4);
+        transform: translateY(-1px);
+    }
+    
+    .submit-row input[type="submit"]:active, .button:active, input[type="button"]:active {
+        transform: translateY(0);
+    }
+    
+    /* 表格样式 */
+    table {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 6px;
+    }
+    
+    th {
+        background: linear-gradient(135deg, #075985 0%, #0c4a6e 100%);
+        color: #e0f2fe;
+        font-weight: bold;
+        border-bottom: 2px solid #06b6d4;
+    }
+    
+    td {
+        border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+        color: #cbd5e1;
+    }
+    
+    tr:hover {
+        background: rgba(56, 189, 248, 0.05);
+    }
+    
+    /* 错误和警告 */
+    .errornote, .errors {
+        background: rgba(220, 38, 38, 0.2);
+        border: 1px solid rgba(220, 38, 38, 0.4);
+        color: #fecaca;
+        border-radius: 4px;
+    }
+    
+    .success {
+        background: rgba(34, 197, 94, 0.2);
+        border: 1px solid rgba(34, 197, 94, 0.4);
+        color: #bbf7d0;
+        border-radius: 4px;
+    }
+    
+    /* 过滤器和工具栏 */
+    #changelist-filter {
+        background: rgba(30, 41, 59, 0.9);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 6px;
+    }
+    
+    #changelist-filter h2 {
+        color: #7dd3fc;
+        background: linear-gradient(135deg, #075985 0%, #0c4a6e 100%);
+    }
+    
+    .actionlist li {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        color: #cbd5e1;
+    }
+    
+    /* 分页 */
+    .paginator {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        color: #cbd5e1;
+    }
+    
+    .paginator a:link, .paginator a:visited {
+        color: #7dd3fc;
+    }
+    
+    .paginator a.showall {
+        color: #34d399;
+    }
+    
+    /* 文件上传 */
+    .file-upload {
+        background: rgba(30, 41, 59, 0.9);
+        border: 1px dashed rgba(56, 189, 248, 0.4);
+        color: #cbd5e1;
+        border-radius: 6px;
+    }
+    
+    /* 多选框样式 */
+    .selector h2 {
+        background: linear-gradient(135deg, #075985 0%, #0c4a6e 100%);
+        color: #e0f2fe;
+        border-radius: 4px 4px 0 0;
+    }
+    
+    .selector .selector-available, .selector .selector-chosen {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 0 0 4px 4px;
+    }
+    
+    .selector select {
+        background: rgba(15, 23, 42, 0.9);
+        color: #e2e8f0;
+        border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    
+    .selector a.selector-chooseall, .selector a.selector-clearall {
+        background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+        color: white;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+    
+    .selector a.selector-chooseall:hover, .selector a.selector-clearall:hover {
+        background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
+    }
+    
+    /* 帮助文本 */
+    .help, .help-block, small {
+        color: #94a3b8;
+        font-size: 12px;
+    }
+    
+    /* 内联表单 */
+    .inline-group {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 6px;
+    }
+    
+    .inline-group h2 {
+        background: linear-gradient(135deg, #075985 0%, #0c4a6e 100%);
+        color: #e0f2fe;
+        border-radius: 6px 6px 0 0;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 767px) {
+        #nav-sidebar {
+            background: rgba(15, 23, 42, 0.95);
+        }
+        
+        #content {
+            margin-left: 0;
+            border-radius: 0;
+        }
+    }
+    
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.5);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #075985 0%, #0c4a6e 100%);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
+    }
+</style>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+// 页面加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 移除英文帮助文本，替换为中文
+    const helpTexts = document.querySelectorAll('.help, .help-block, small');
+    helpTexts.forEach(function(element) {
+        let text = element.textContent;
+        if (text.includes('Choose') || text.includes('select') || text.includes('Remove')) {
+            if (text.includes('标签')) {
+                element.textContent = '在左侧选择标签后点击右箭头添加；在右侧选择后点击左箭头移除';
+            }
+        }
+        
+        // 替换其他常见英文文本
+        text = text.replace(/Choose/g, '选择');
+        text = text.replace(/Select/g, '选择');
+        text = text.replace(/Remove/g, '移除');
+        text = text.replace(/Available/g, '可用');
+        text = text.replace(/Chosen/g, '已选择');
+        text = text.replace(/Filter/g, '筛选');
+        
+        element.textContent = text;
+    });
+    
+    // 替换按钮文本
+    const buttons = document.querySelectorAll('input[type="submit"], button, .button');
+    buttons.forEach(function(button) {
+        let text = button.value || button.textContent;
+        if (text.includes('Save')) {
+            if (button.value) button.value = '保存';
+            else button.textContent = '保存';
+        } else if (text.includes('Add another')) {
+            button.textContent = '添加另一个';
+        } else if (text.includes('Delete')) {
+            button.textContent = '删除';
+        }
+    });
+    
+    // 替换链接文本
+    const links = document.querySelectorAll('a');
+    links.forEach(function(link) {
+        let text = link.textContent;
+        if (text === 'Add') {
+            link.textContent = '添加';
+        } else if (text === 'Change') {
+            link.textContent = '修改';
+        } else if (text === 'Delete') {
+            link.textContent = '删除';
+        } else if (text.includes('Add another')) {
+            link.textContent = '添加另一个';
+        }
+    });
+    
+    // 替换表格标题
+    const tableHeaders = document.querySelectorAll('th');
+    tableHeaders.forEach(function(th) {
+        let text = th.textContent;
+        if (text.includes('ACTIONS')) {
+            th.textContent = '操作';
+        }
+    });
+    
+    console.log('Django Admin 中文化完成');
+});
+</script>
+{% endblock %}

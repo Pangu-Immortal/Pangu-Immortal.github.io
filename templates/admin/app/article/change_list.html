@@ -1,0 +1,108 @@
+{% extends "admin/pink_base.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block title %}{{ title }} | 盘古大仙洞府管理后台{% endblock %}
+
+{% block content %}
+<div class="pink-animate-fade-in">
+    <div class="pink-card pink-mb-4">
+        <div class="pink-card-header">
+            <div class="pink-flex pink-justify-between pink-items-center">
+                <h1 class="pink-card-title pink-text-primary">文章管理</h1>
+                <a href="{% url 'admin:app_article_add' %}" class="pink-btn pink-btn-primary">
+                    ✍️ 新建文章
+                </a>
+            </div>
+        </div>
+        
+        <div class="pink-card-body">
+            {% if cl.result_count == 0 %}
+                <div class="pink-text-center pink-py-8">
+                    <div class="pink-mb-4">
+                        <i class="fas fa-file-alt pink-text-3xl pink-text-light"></i>
+                    </div>
+                    <h3 class="pink-text-xl pink-font-semibold pink-text-dark pink-mb-2">暂无文章</h3>
+                    <p class="pink-text-medium pink-mb-4">开始创建你的第一篇文章吧！</p>
+                    <a href="{% url 'admin:app_article_add' %}" class="pink-btn pink-btn-primary">创建文章</a>
+                </div>
+            {% else %}
+                <div class="pink-table-container pink-custom-scrollbar">
+                    <table class="pink-table">
+                        <thead>
+                            <tr>
+                                <th>标题</th>
+                                <th class="pink-mobile:hidden">发布时间</th>
+                                <th>状态</th>
+                                <th class="pink-mobile:hidden">评论</th>
+                                <th class="pink-mobile:hidden">标签</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for article in cl.result_list %}
+                            <tr class="{% if article.is_hidden %}pink-opacity-75{% endif %}">
+                                <td>
+                                    <div class="pink-flex pink-items-center pink-gap-3">
+                                        {% if article.cover %}
+                                            <img src="{{ article.cover.url }}" alt="封面" class="pink-img-rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="pink-bg-light pink-rounded-lg pink-flex pink-items-center pink-justify-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-file-alt pink-text-primary"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <h4 class="pink-font-semibold pink-text-dark pink-mb-1">{{ article.title }}</h4>
+                                            <small class="pink-text-light">发布于 {{ article.published_at|date:"Y-m-d H:i" }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="pink-mobile:hidden">{{ article.published_at|date:"Y-m-d" }}</td>
+                                <td>
+                                    {% if article.is_hidden %}
+                                        <span class="pink-status pink-status-draft">隐藏</span>
+                                    {% else %}
+                                        <span class="pink-status pink-status-published">显示</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pink-mobile:hidden">
+                                    {% if article.allow_comment %}
+                                        <span class="pink-text-success">开启</span>
+                                    {% else %}
+                                        <span class="pink-text-medium">关闭</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pink-mobile:hidden">
+                                    <div class="pink-flex pink-gap-1 pink-flex-wrap">
+                                        {% for tag in article.tags.all %}
+                                            <span class="pink-text-xs pink-bg-light pink-text-primary pink-px-2 pink-py-1 pink-rounded-full">{{ tag.name }}</span>
+                                        {% empty %}
+                                            <span class="pink-text-light">-</span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="pink-flex pink-gap-2 pink-table-actions">
+                                        <a href="{% url 'admin:app_article_change' article.pk %}" class="pink-btn pink-btn-sm pink-btn-outline" title="编辑">
+                                            ✏️ 编辑
+                                        </a>
+                                        <a href="{% url 'admin:app_article_delete' article.pk %}" class="pink-btn pink-btn-sm pink-btn-outline pink-text-danger" title="删除">
+                                            🗑️ 删除
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if cl.result_count > 20 %}
+                <div class="pink-mt-4">
+                    {% admin_list_filter cl %}
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

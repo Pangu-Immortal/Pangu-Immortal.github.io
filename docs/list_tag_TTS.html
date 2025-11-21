@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>洞府动态</title>
+    <link rel="stylesheet" href="https://unpkg.com/normalize.css/normalize.css">
+    <style>
+        /* ==================== 全局样式 ==================== */
+        :root {
+            color-scheme: dark;
+            --color-bg-deep: #05070d;
+            --color-bg-gradient-start: #090d16;
+            --color-text-light: #d9e6ff;
+            --color-text-sky: #8bc8ff;
+            --color-text-cyan: #38e4d8;
+            --color-card-bg: rgba(10, 18, 32, 0.78);
+            --color-card-border: rgba(63, 101, 152, 0.35);
+            --color-nav-bg: rgba(7, 12, 22, 0.9);
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: radial-gradient(circle at center, var(--color-bg-gradient-start), var(--color-bg-deep) 75%);
+            color: var(--color-text-light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.25s ease;
+        }
+
+        /* ==================== 字母雨背景 ==================== */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* ==================== 导航栏 ==================== */
+        .brand {
+            padding: 36px 24px 16px;
+            text-align: center;
+            letter-spacing: 0.4em;
+            position: relative;
+            z-index: 10;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 32px;
+            color: var(--color-text-sky);
+            text-shadow: 0 0 15px currentColor, 0 0 30px currentColor, 0 0 45px currentColor;
+            font-weight: 600;
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            padding: 16px 24px 22px;
+            position: sticky;
+            top: 0;
+            background: var(--color-nav-bg);
+            backdrop-filter: blur(14px);
+            z-index: 10;
+            border-bottom: 1px solid rgba(139, 200, 255, 0.1);
+        }
+
+        .nav a {
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.82);
+            transition: all 0.25s ease;
+            font-weight: 500;
+        }
+
+        .nav a:hover {
+            color: #ffffff;
+            background: rgba(139, 200, 255, 0.1);
+        }
+
+        .nav a.active {
+            color: #04121c;
+            background: linear-gradient(135deg, #7bd0ff, #38e4d8);
+            box-shadow: 0 10px 26px rgba(78, 208, 223, 0.32);
+            font-weight: 600;
+        }
+
+        /* ==================== 容器 ==================== */
+        .container {
+            max-width: 980px;
+            margin: 32px auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ==================== 卡片 ==================== */
+        .card {
+            background: var(--color-card-bg);
+            border: 1px solid var(--color-card-border);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 12px 35px rgba(9, 18, 33, 0.45);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 45px rgba(9, 18, 33, 0.6);
+        }
+
+        /* ==================== 按钮 ==================== */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border-radius: 32px;
+            background: linear-gradient(135deg, #78d7ff, #2ed6b5);
+            color: #071522;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            transition: all 0.25s ease;
+            border: none;
+            cursor: pointer;
+            text-shadow: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(78, 212, 220, 0.32);
+        }
+
+        /* ==================== 标签 ==================== */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            margin: 4px;
+            border-radius: 12px;
+            background: rgba(139, 200, 255, 0.1);
+            color: var(--color-text-sky);
+            font-size: 13px;
+            border: 1px solid rgba(139, 200, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background: rgba(139, 200, 255, 0.2);
+            border-color: rgba(139, 200, 255, 0.4);
+        }
+
+        /* ==================== 页脚 ==================== */
+        footer {
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 13px;
+            opacity: 0.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ==================== 响应式 ==================== */
+        @media (max-width: 768px) {
+            .brand h1 {
+                font-size: 24px;
+                letter-spacing: 0.3em;
+            }
+
+            .nav {
+                gap: 8px;
+                padding: 12px 16px;
+            }
+
+            .nav a {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .container {
+                padding: 0 16px;
+                margin: 20px auto;
+            }
+
+            .card {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 字母雨背景 -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- 导航栏 -->
+    <div class="brand">
+        <h1>盘古大仙洞府</h1>
+    </div>
+    <nav class="nav">
+        
+        <a href="index.html" class="">首页</a>
+        <a href="list.html" class="active">动态</a>
+        <a href="board.html" class="">留言板</a>
+        <a href="about.html" class="">关于作者</a>
+        
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container">
+        
+<style>
+  /* 文章列表页面样式 */
+  .articles-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* 标签侧边栏 */
+  .sidebar {
+    position: sticky;
+    top: 90px;
+    align-self: start;
+  }
+
+  .sidebar h3 {
+    margin: 0 0 20px;
+    font-size: 18px;
+    letter-spacing: 0.2em;
+    color: var(--color-text-sky);
+  }
+
+  .tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tag-link {
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 14px;
+  }
+
+  .tag-link:hover {
+    background: rgba(139, 200, 255, 0.1);
+    color: var(--color-text-sky);
+  }
+
+  .tag-link.active {
+    background: rgba(139, 200, 255, 0.15);
+    color: var(--color-text-sky);
+    font-weight: 600;
+  }
+
+  /* 文章卡片 */
+  .article-card {
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-card-border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .article-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(9, 18, 33, 0.6);
+    border-color: rgba(139, 200, 255, 0.3);
+  }
+
+  .article-title {
+    margin: 0 0 16px;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-sky);
+    letter-spacing: 0.02em;
+  }
+
+  .article-title a {
+    color: inherit;
+  }
+
+  .article-title a:hover {
+    color: var(--color-text-cyan);
+  }
+
+  .article-cover {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 16px 0;
+    object-fit: cover;
+  }
+
+  .article-summary {
+    opacity: 0.82;
+    line-height: 1.8;
+    margin: 16px 0;
+    color: var(--color-text-light);
+  }
+
+  .article-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+
+  .article-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(139, 200, 255, 0.1);
+    color: var(--color-text-sky);
+    font-size: 13px;
+    border: 1px solid rgba(139, 200, 255, 0.2);
+  }
+
+  /* 分页 */
+  .pagination {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 32px;
+    opacity: 0.85;
+  }
+
+  .pagination button,
+  .pagination a.btn-primary {
+    padding: 10px 24px;
+  }
+
+  .pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* 空状态 */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    opacity: 0.6;
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .articles-layout {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .sidebar {
+      position: static;
+      order: -1;
+    }
+
+    .sidebar h3 {
+      font-size: 16px;
+    }
+
+    .tag-list {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    .article-card {
+      padding: 20px;
+    }
+
+    .article-title {
+      font-size: 20px;
+    }
+  }
+</style>
+
+<div class="articles-layout">
+  <!-- 标签侧边栏 -->
+  <aside class="sidebar">
+    <div class="card">
+      <h3>标签筛选</h3>
+      <div class="tag-list">
+        
+          <a href="list.html" class="tag-link ">
+            📋 全部
+          </a>
+          
+            <a href="list_tag_NLP.html" class="tag-link ">
+              # NLP
+            </a>
+          
+            <a href="list_tag_TTS.html" class="tag-link active">
+              # TTS
+            </a>
+          
+            <a href="list_tag_多模态.html" class="tag-link ">
+              # 多模态
+            </a>
+          
+        
+      </div>
+    </div>
+  </aside>
+
+  <!-- 文章列表 -->
+  <main>
+    
+      <article class="article-card">
+        <h2 class="article-title">
+          
+          <a href="article_4.html">003 还卡活动开始啊</a>
+          
+        </h2>
+
+        
+        <div class="article-meta">
+          
+          <span class="article-tag"># TTS</span>
+          
+        </div>
+        
+
+        
+
+        <p class="article-summary">阿里斯顿捡垃圾都是垃圾胜利大街老师的健康啦</p>
+
+        
+        <a href="article_4.html" class="btn-primary">阅读全文 →</a>
+        
+      </article>
+    
+
+    <!-- 分页 -->
+    
+  </main>
+</div>
+
+    </div>
+
+    <!-- 页脚 -->
+    <footer>© 盘古大仙洞府 - 基于 Django MTV 模式构建</footer>
+
+    <!-- 字母雨脚本 -->
+    <script>
+    (function() {
+        const canvas = document.getElementById('matrix-canvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+*/#@$&'.split('');
+
+        let dims = { w: 0, h: 0, dpr: 1, fontSize: 16 };
+        let drops = [];
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameInterval = 1000 / targetFPS;
+
+        function setup() {
+            dims = {
+                w: window.innerWidth,
+                h: window.innerHeight,
+                dpr: window.devicePixelRatio || 1,
+                fontSize: Math.max(14, Math.floor(window.innerWidth / 100))
+            };
+
+            canvas.width = dims.w * dims.dpr;
+            canvas.height = dims.h * dims.dpr;
+            ctx.setTransform(dims.dpr, 0, 0, dims.dpr, 0, 0);
+
+            const columns = Math.floor(dims.w / dims.fontSize);
+            drops = Array(columns).fill(0).map(() => Math.random() * -dims.h / dims.fontSize);
+        }
+
+        function draw(currentTime) {
+            if (currentTime - lastTime < frameInterval) {
+                requestAnimationFrame(draw);
+                return;
+            }
+            lastTime = currentTime;
+
+            ctx.fillStyle = 'rgba(3, 6, 12, 0.08)';
+            ctx.fillRect(0, 0, dims.w, dims.h);
+
+            ctx.font = dims.fontSize + 'px "JetBrains Mono", "SFMono-Regular", "Menlo", monospace';
+
+            drops.forEach((y, index) => {
+                for (let i = 0; i < 3; i++) {
+                    const charY = (y - i * 2) * dims.fontSize;
+                    if (charY > 0 && charY < dims.h) {
+                        const text = chars[Math.floor(Math.random() * chars.length)];
+                        const x = index * dims.fontSize;
+                        const opacity = i === 0 ? 0.95 : 0.7 - (i * 0.2);
+                        const brightness = i === 0 ? 75 : 65 - (i * 10);
+
+                        ctx.fillStyle = `hsla(${190 + (index % 40)}, 90%, ${brightness}%, ${opacity})`;
+                        ctx.fillText(text, x, charY);
+                    }
+                }
+
+                if (y * dims.fontSize > dims.h + dims.fontSize * 5) {
+                    drops[index] = Math.random() > 0.98 ? Math.random() * -dims.h / dims.fontSize : -dims.fontSize;
+                } else {
+                    drops[index] += 0.5 + Math.random() * 0.7;
+                }
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        setup();
+
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(setup, 100);
+        });
+
+        requestAnimationFrame(draw);
+    })();
+    </script>
+</body>
+</html>

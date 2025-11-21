@@ -1,0 +1,284 @@
+{% extends "admin/pink_base.html" %}
+{% load i18n admin_urls %}
+
+{% block title %}确认删除 | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="delete-confirmation">
+        <div class="warning-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h1>确认删除</h1>
+        </div>
+        
+        <div class="warning-content">
+            <p class="warning-text">
+                你确定要删除以下对象吗？此操作无法撤销。
+            </p>
+            
+            <div class="object-info">
+                <h3>{{ object|truncatewords:"20" }}</h3>
+                {% if object.content_md %}
+                    <p class="object-preview">{{ object.content_md|truncatewords:"30" }}</p>
+                {% endif %}
+            </div>
+            
+            {% if deleted_objects %}
+                <div class="related-objects">
+                    <h4>以下相关对象也将被删除：</h4>
+                    <ul class="deletion-list">
+                        {% for obj in deleted_objects %}
+                            <li>{{ obj }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            
+            {% if perms_lacking %}
+                <div class="permission-warning">
+                    <h4>你没有权限删除以下对象：</h4>
+                    <ul class="permission-list">
+                        {% for obj in perms_lacking %}
+                            <li>{{ obj }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            
+            {% if protected %}
+                <div class="protection-warning">
+                    <h4>以下对象受保护，无法删除：</h4>
+                    <ul class="protection-list">
+                        {% for obj in protected %}
+                            <li>{{ obj }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+        
+        <form method="post" class="delete-form">
+            {% csrf_token %}
+            <div class="form-actions">
+                {% if perms_lacking or protected %}
+                    <a href="../../" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> 返回
+                    </a>
+                {% else %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> 确认删除
+                    </button>
+                    <a href="../" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> 取消
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.delete-confirmation {
+    max-width: 800px;
+    margin: 0 auto;
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(220, 38, 38, 0.2);
+}
+
+.warning-header {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.warning-header i {
+    font-size: 2rem;
+    animation: pulse 2s infinite;
+}
+
+.warning-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.warning-content {
+    padding: 2rem;
+}
+
+.warning-text {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    color: #fecaca;
+    font-weight: 500;
+    margin-bottom: 2rem;
+}
+
+.object-info {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.object-info h3 {
+    color: #e2e8f0;
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
+}
+
+.object-preview {
+    color: #94a3b8;
+    font-style: italic;
+    margin: 0;
+}
+
+.related-objects {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.related-objects h4 {
+    color: #fbbf24;
+    margin: 0 0 1rem 0;
+}
+
+.deletion-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.deletion-list li {
+    color: #cbd5e1;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(251, 191, 36, 0.1);
+}
+
+.deletion-list li:before {
+    content: "→ ";
+    color: #fbbf24;
+    font-weight: bold;
+}
+
+.permission-warning, .protection-warning {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.permission-warning h4, .protection-warning h4 {
+    color: #fecaca;
+    margin: 0 0 1rem 0;
+}
+
+.permission-list, .protection-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.permission-list li, .protection-list li {
+    color: #cbd5e1;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(220, 38, 38, 0.1);
+}
+
+.permission-list li:before, .protection-list li:before {
+    content: "✗ ";
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.delete-form {
+    padding: 0 2rem 2rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #475569 0%, #64748b 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #334155 0%, #475569 100%);
+    box-shadow: 0 6px 16px rgba(100, 116, 139, 0.4);
+    transform: translateY(-1px);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-content {
+        padding: 1rem;
+    }
+    
+    .warning-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .delete-confirmation {
+        margin: 1rem;
+    }
+}
+</style>
+{% endblock %}

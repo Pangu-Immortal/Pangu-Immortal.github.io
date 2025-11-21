@@ -1,0 +1,775 @@
+{% extends "admin/pink_base.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block title %}文章管理 - 盘古大仙洞府{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'custom_admin:index' %}">🌸 盘古大仙洞府后台</a></h1>
+{% endblock %}
+
+{% block content_title %}<h1>📋 文章管理</h1>{% endblock %}
+
+{% block content %}
+<!-- 面包屑导航 -->
+<nav class="breadcrumb">
+    <a href="{% url 'custom_admin:index' %}">🏠 后台首页</a>
+    <span class="separator">›</span>
+    <span class="current">文章管理</span>
+    <div style="margin-left: auto;">
+        <a href="{% url 'custom_admin:index' %}" style="color: var(--pink-primary); text-decoration: none; font-size: 12px;">← 返回首页</a>
+    </div>
+</nav>
+
+<div class="article-list-container">
+    <!-- 操作栏 -->
+    <div class="action-bar">
+        <div class="action-buttons">
+            <a href="{% url 'custom_admin:app_article_add' %}" class="add-button">
+                <span>✨</span>
+                新建文章
+            </a>
+            <button type="button" class="bulk-action-btn" onclick="showBulkActions()">
+                <span>⚡</span>
+                批量操作
+            </button>
+        </div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 搜索文章标题..." onkeyup="searchArticles()">
+        </div>
+    </div>
+
+    <!-- 文章列表 -->
+    <div class="articles-table">
+        {% if cl.result_count > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th class="checkbox-column">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                    </th>
+                    <th class="cover-column">封面</th>
+                    <th class="title-column">标题</th>
+                    <th class="tags-column">标签</th>
+                    <th class="status-column">状态</th>
+                    <th class="date-column">发布时间</th>
+                    <th class="actions-column">操作</th>
+                </tr>
+            </thead>
+            <tbody id="articlesTableBody">
+                {% for article in cl.result_list %}
+                <tr class="article-row" data-title="{{ article.title|lower }}" data-id="{{ article.pk }}" 
+                    onclick="window.location='{% url 'custom_admin:app_article_change' article.pk %}'" 
+                    style="cursor: pointer;">
+                    <td class="checkbox-column">
+                        <input type="checkbox" name="selected" value="{{ article.pk }}" onclick="event.stopPropagation()">
+                    </td>
+                    <td class="cover-column">
+                        {% if article.cover %}
+                            <img src="{{ article.cover.url }}" alt="封面" class="cover-thumb">
+                        {% else %}
+                            <div class="no-cover">无封面</div>
+                        {% endif %}
+                    </td>
+                    <td class="title-column">
+                        <div class="article-title">
+                            <a href="{% url 'custom_admin:app_article_change' article.pk %}" class="title-link">
+                                {{ article.title }}
+                            </a>
+                            {% if article.is_hidden %}
+                                <span class="status-badge hidden">隐藏</span>
+                            {% else %}
+                                <span class="status-badge published">已发布</span>
+                            {% endif %}
+                            {% if not article.allow_comment %}
+                                <span class="status-badge no-comment">禁评</span>
+                            {% endif %}
+                        </div>
+                        <div class="article-excerpt">
+                            {{ article.content_md|truncatewords:20|striptags }}
+                        </div>
+                    </td>
+                    <td class="tags-column">
+                        {% if article.tags.all %}
+                            <div class="tags-container">
+                                {% for tag in article.tags.all %}
+                                    <span class="tag">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <span class="no-tags">无标签</span>
+                        {% endif %}
+                    </td>
+                    <td class="status-column">
+                        <div class="status-info">
+                            <span class="status-indicator {% if article.is_hidden %}status-hidden{% else %}status-published{% endif %}"></span>
+                            <span class="status-text">{{ article.get_is_hidden_display }}</span>
+                        </div>
+                        <div class="comment-status">
+                            {% if article.allow_comment %}
+                                <span class="comment-enabled">💬 允许评论</span>
+                            {% else %}
+                                <span class="comment-disabled">🚫 禁止评论</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="date-column">
+                        <div class="publish-date">
+                            {{ article.published_at|date:"Y-m-d" }}
+                        </div>
+                        <div class="publish-time">
+                            {{ article.published_at|date:"H:i" }}
+                        </div>
+                    </td>
+                    <td class="actions-column">
+                        <div class="action-buttons">
+                            <a href="{% url 'custom_admin:app_article_change' article.pk %}" class="edit-btn" title="编辑" onclick="event.stopPropagation()">
+                                ✏️
+                            </a>
+                            <a href="{% url 'custom_admin:app_article_delete' article.pk %}" class="delete-btn" title="删除" 
+                               onclick="event.stopPropagation(); return confirm('确定要删除这篇文章吗？')">
+                                🗑️
+                            </a>
+                            <a href="/articles/{{ article.pk }}/" target="_blank" class="view-btn" title="查看" onclick="event.stopPropagation()">
+                                👁️
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <h3>还没有文章</h3>
+            <p>开始创作你的第一篇文章吧！</p>
+            <a href="{% url 'custom_admin:app_article_add' %}" class="add-button">
+                <span>✨</span>
+                新建文章
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 批量操作面板 -->
+    <div id="bulkActions" class="bulk-actions-panel" style="display: none;">
+        <h3>⚡ 批量操作</h3>
+        <div class="bulk-actions">
+            <button type="button" onclick="bulkAction('publish')" class="bulk-btn bulk-publish">
+                <span>🌟</span>
+                批量发布
+            </button>
+            <button type="button" onclick="bulkAction('hide')" class="bulk-btn bulk-hide">
+                <span>🙈</span>
+                批量隐藏
+            </button>
+            <button type="button" onclick="bulkAction('enable_comment')" class="bulk-btn bulk-enable-comment">
+                <span>💬</span>
+                开启评论
+            </button>
+            <button type="button" onclick="bulkAction('disable_comment')" class="bulk-btn bulk-disable-comment">
+                <span>🚫</span>
+                关闭评论
+            </button>
+            <button type="button" onclick="bulkAction('delete')" class="bulk-btn bulk-delete">
+                <span>🗑️</span>
+                批量删除
+            </button>
+        </div>
+        <button type="button" onclick="hideBulkActions()" class="cancel-btn">取消</button>
+    </div>
+</div>
+
+<style>
+/* 面包屑导航 */
+.breadcrumb {
+    max-width: 1400px;
+    margin: 0 auto 20px;
+    padding: 15px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow-soft);
+    border: 1px solid var(--pink-lighter);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    position: relative;
+}
+
+.breadcrumb a {
+    color: var(--pink-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb a:hover {
+    color: var(--pink-dark);
+    text-decoration: underline;
+}
+
+.breadcrumb .separator {
+    color: var(--text-light);
+    font-weight: bold;
+}
+
+.breadcrumb .current {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.article-list-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 操作栏 */
+.action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px var(--shadow-soft);
+    border: 1px solid var(--pink-lighter);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.add-button {
+    background: var(--gradient-pink);
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px var(--shadow-pink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--shadow-pink);
+    color: white;
+    text-decoration: none;
+}
+
+.bulk-action-btn {
+    background: var(--warm-gray);
+    color: var(--text-dark);
+    border: 1px solid var(--pink-lighter);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bulk-action-btn:hover {
+    background: var(--pink-lighter);
+    border-color: var(--pink-light);
+}
+
+.search-box input {
+    border: 2px solid var(--pink-lighter);
+    border-radius: 8px;
+    padding: 12px 16px;
+    width: 300px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+    border-color: var(--pink-primary);
+    box-shadow: 0 0 0 3px var(--shadow-pink);
+    outline: none;
+}
+
+/* 文章表格 */
+.articles-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px var(--shadow-soft);
+    border: 1px solid var(--pink-lighter);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead th {
+    background: var(--gradient-pink);
+    color: white;
+    font-weight: 600;
+    padding: 16px;
+    text-align: left;
+    border-bottom: 2px solid var(--pink-light);
+}
+
+tbody tr {
+    border-bottom: 1px solid var(--pink-lighter);
+    transition: background 0.3s ease;
+}
+
+tbody tr:hover {
+    background: var(--pink-lighter);
+}
+
+tbody td {
+    padding: 16px;
+    vertical-align: top;
+}
+
+/* 列样式 */
+.checkbox-column {
+    width: 40px;
+    text-align: center;
+}
+
+.cover-column {
+    width: 80px;
+}
+
+.cover-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--shadow-soft);
+}
+
+.no-cover {
+    width: 60px;
+    height: 60px;
+    background: var(--pink-lighter);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    font-size: 0.8rem;
+}
+
+.title-column {
+    min-width: 300px;
+}
+
+.article-title {
+    margin-bottom: 8px;
+}
+
+.title-link {
+    color: var(--text-dark);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
+}
+
+.title-link:hover {
+    color: var(--pink-primary);
+    text-decoration: underline;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.status-badge.published {
+    background: #e8f5e8;
+    color: #4caf50;
+}
+
+.status-badge.hidden {
+    background: #ffeaea;
+    color: #f44336;
+}
+
+.status-badge.no-comment {
+    background: #fff3e0;
+    color: #ff9800;
+}
+
+.article-excerpt {
+    color: var(--text-medium);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin-top: 8px;
+}
+
+.tags-column {
+    min-width: 150px;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.tag {
+    background: var(--pink-lighter);
+    color: var(--pink-dark);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.no-tags {
+    color: var(--text-light);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.status-column {
+    min-width: 120px;
+}
+
+.status-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-indicator.status-published {
+    background: #4caf50;
+}
+
+.status-indicator.status-hidden {
+    background: #f44336;
+}
+
+.status-text {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.comment-status {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.comment-enabled {
+    color: #4caf50;
+}
+
+.comment-disabled {
+    color: #f44336;
+}
+
+.date-column {
+    min-width: 100px;
+    text-align: center;
+}
+
+.publish-date {
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.publish-time {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.actions-column {
+    width: 120px;
+    text-align: center;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.edit-btn, .delete-btn, .view-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.edit-btn {
+    background: #e3f2fd;
+    color: #2196f3;
+}
+
+.edit-btn:hover {
+    background: #2196f3;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.delete-btn {
+    background: #ffebee;
+    color: #f44336;
+}
+
+.delete-btn:hover {
+    background: #f44336;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.view-btn {
+    background: #f3e5f5;
+    color: #9c27b0;
+}
+
+.view-btn:hover {
+    background: #9c27b0;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* 空状态 */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    color: var(--text-dark);
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+}
+
+.empty-state p {
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+/* 批量操作面板 */
+.bulk-actions-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    border: 1px solid var(--pink-lighter);
+    z-index: 1000;
+    max-width: 500px;
+    width: 90%;
+}
+
+.bulk-actions-panel h3 {
+    color: var(--pink-dark);
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.bulk-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.bulk-btn {
+    background: var(--warm-gray);
+    color: var(--text-dark);
+    border: 1px solid var(--pink-lighter);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.bulk-btn:hover {
+    background: var(--pink-lighter);
+    border-color: var(--pink-light);
+    transform: translateY(-1px);
+}
+
+.bulk-publish:hover { background: #e8f5e8; border-color: #4caf50; }
+.bulk-hide:hover { background: #fff3e0; border-color: #ff9800; }
+.bulk-enable-comment:hover { background: #e3f2fd; border-color: #2196f3; }
+.bulk-disable-comment:hover { background: #ffebee; border-color: #f44336; }
+.bulk-delete:hover { background: #ffebee; border-color: #f44336; }
+
+.cancel-btn {
+    background: var(--warm-gray);
+    color: var(--text-dark);
+    border: 1px solid var(--pink-lighter);
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    font-weight: 500;
+}
+
+.cancel-btn:hover {
+    background: var(--pink-lighter);
+}
+
+@media (max-width: 768px) {
+    .action-bar {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .search-box input {
+        width: 100%;
+    }
+    
+    .articles-table {
+        overflow-x: auto;
+    }
+    
+    table {
+        min-width: 800px;
+    }
+    
+    .bulk-actions {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// 搜索功能
+function searchArticles() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.article-row');
+    
+    rows.forEach(row => {
+        const title = row.getAttribute('data-title');
+        if (title.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// 全选功能
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('input[name="selected"]');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+}
+
+// 批量操作面板
+function showBulkActions() {
+    const selectedCount = document.querySelectorAll('input[name="selected"]:checked').length;
+    if (selectedCount === 0) {
+        alert('请先选择要操作的文章');
+        return;
+    }
+    document.getElementById('bulkActions').style.display = 'block';
+}
+
+function hideBulkActions() {
+    document.getElementById('bulkActions').style.display = 'none';
+}
+
+// 批量操作
+function bulkAction(action) {
+    const selected = document.querySelectorAll('input[name="selected"]:checked');
+    const ids = Array.from(selected).map(cb => cb.value);
+    
+    if (ids.length === 0) {
+        alert('请先选择要操作的文章');
+        return;
+    }
+    
+    let confirmMessage = '';
+    let actionUrl = '';
+    
+    switch(action) {
+        case 'publish':
+            confirmMessage = `确定要发布选中的 ${ids.length} 篇文章吗？`;
+            actionUrl = '{% url "admin:app_article_changelist" %}';
+            break;
+        case 'hide':
+            confirmMessage = `确定要隐藏选中的 ${ids.length} 篇文章吗？`;
+            actionUrl = '{% url "admin:app_article_changelist" %}';
+            break;
+        case 'enable_comment':
+            confirmMessage = `确定要开启选中的 ${ids.length} 篇文章的评论吗？`;
+            actionUrl = '{% url "admin:app_article_changelist" %}';
+            break;
+        case 'disable_comment':
+            confirmMessage = `确定要关闭选中的 ${ids.length} 篇文章的评论吗？`;
+            actionUrl = '{% url "admin:app_article_changelist" %}';
+            break;
+        case 'delete':
+            confirmMessage = `确定要删除选中的 ${ids.length} 篇文章吗？此操作不可恢复！`;
+            actionUrl = '{% url "admin:app_article_changelist" %}';
+            break;
+    }
+    
+    if (confirm(confirmMessage)) {
+        // 这里可以添加AJAX请求来处理批量操作
+        alert(`已选择对 ${ids.length} 篇文章执行操作：${action}`);
+        hideBulkActions();
+    }
+}
+
+// 页面加载时检查选择状态
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('input[name="selected"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const selectAll = document.getElementById('selectAll');
+            const allChecked = document.querySelectorAll('input[name="selected"]').length === 
+                              document.querySelectorAll('input[name="selected"]:checked').length;
+            selectAll.checked = allChecked;
+        });
+    });
+});
+</script>
+{% endblock %}

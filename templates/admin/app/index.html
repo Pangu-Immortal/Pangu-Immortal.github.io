@@ -1,0 +1,548 @@
+{% extends "admin/pink_base.html" %}
+{% load i18n static %}
+
+{% block title %}管理面板 | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">盘古大仙洞府 - 管理面板</h1>
+        <p class="dashboard-subtitle">欢迎回来，{{ user.get_full_name|default:user.username }}</p>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ article_count }}</h3>
+                    <p class="stat-label">文章总数</p>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-comment"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ comment_count }}</h3>
+                    <p class="stat-label">评论总数</p>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ tag_count }}</h3>
+                    <p class="stat-label">标签总数</p>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-minus"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ visible_count }}</h3>
+                    <p class="stat-label">显示文章</p>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="recent-articles">
+                <div class="card-header">
+                    <h3>最近文章</h3>
+                    <a href="{% url 'custom_admin:app_article_changelist' %}" class="view-all">查看全部</a>
+                </div>
+                <div class="card-content">
+                    {% if recent_articles %}
+                        <div class="article-list">
+                            {% for article in recent_articles %}
+                                <div class="article-item">
+                                    {% if article.cover %}
+                                        <img src="{{ article.cover.url }}" alt="封面" class="article-thumb">
+                                    {% endif %}
+                                    <div class="article-info">
+                                        <h4>{{ article.title|truncatechars:30 }}</h4>
+                                        <div class="article-meta">
+                                            <span class="article-date">{{ article.published_at|date:"Y-m-d" }}</span>
+                                            {% if article.is_hidden %}
+                                                <span class="status-badge status-hidden">隐藏</span>
+                                            {% else %}
+                                                <span class="status-badge status-visible">显示</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="article-actions">
+                                        <a href="{% url 'custom_admin:app_article_change' article.pk %}" class="btn-icon">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-file-alt"></i>
+                            <p>暂无文章</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="recent-comments">
+                <div class="card-header">
+                    <h3>最新评论</h3>
+                    <a href="{% url 'admin:app_comment_changelist' %}" class="view-all">查看全部</a>
+                </div>
+                <div class="card-content">
+                    {% if recent_comments %}
+                        <div class="comment-list">
+                            {% for comment in recent_comments %}
+                                <div class="comment-item">
+                                    <div class="comment-header">
+                                        <strong>{{ comment.nickname }}</strong>
+                                        <span class="comment-date">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+                                    </div>
+                                    <div class="comment-content">
+                                        {{ comment.content|truncatechars:50 }}
+                                    </div>
+                                    <div class="comment-meta">
+                                        <span class="comment-article">来自: {{ comment.article.title|truncatechars:20 }}</span>
+                                        {% if comment.is_hidden %}
+                                            <span class="status-badge status-hidden">隐藏</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-comment"></i>
+                            <p>暂无评论</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <div class="card-header">
+                <h3>快速操作</h3>
+            </div>
+            <div class="card-content">
+                <div class="action-grid">
+                    <a href="{% url 'custom_admin:app_article_add' %}" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>新建文章</h4>
+                            <p>创建新的博客文章</p>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'custom_admin:app_article_changelist' %}" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>文章列表</h4>
+                            <p>管理所有文章</p>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'custom_admin:app_tag_changelist' %}" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>标签管理</h4>
+                            <p>管理文章标签</p>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'custom_admin:app_comment_changelist' %}" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>评论管理</h4>
+                            <p>审核和管理评论</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-dashboard {
+    padding: 2rem;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.dashboard-title {
+    color: #7dd3fc;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 15px rgba(125, 211, 252, 0.3);
+}
+
+.dashboard-subtitle {
+    color: #94a3b8;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.dashboard-grid {
+    display: grid;
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 8px 32px rgba(2, 8, 20, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(56, 189, 248, 0.3);
+    border-color: rgba(56, 189, 248, 0.4);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #0891b2, #06b6d4, #0891b2);
+}
+
+.stat-icon {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-label {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin: 0.5rem 0 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-trend {
+    color: #34d399;
+    font-size: 1.2rem;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.recent-articles, .recent-comments, .quick-actions {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(2, 8, 20, 0.4);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #075985 0%, #0c4a6e 100%);
+    color: #e0f2fe;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.view-all {
+    color: #7dd3fc;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.view-all:hover {
+    color: #e0f2fe;
+}
+
+.card-content {
+    padding: 1.5rem;
+}
+
+.article-item, .comment-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+    transition: background 0.2s ease;
+}
+
+.article-item:hover, .comment-item:hover {
+    background: rgba(56, 189, 248, 0.05);
+    margin: 0 -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+.article-item:last-child, .comment-item:last-child {
+    border-bottom: none;
+}
+
+.article-thumb {
+    width: 50px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.article-info, .comment-info {
+    flex: 1;
+}
+
+.article-info h4, .comment-header strong {
+    color: #e2e8f0;
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.article-meta, .comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.article-date, .comment-date {
+    color: #94a3b8;
+}
+
+.comment-content {
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    line-height: 1.4;
+}
+
+.comment-article {
+    color: #7dd3fc;
+}
+
+.btn-icon {
+    color: #7dd3fc;
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    background: rgba(125, 211, 252, 0.1);
+    color: #e0f2fe;
+}
+
+.status-badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-visible {
+    background: rgba(34, 197, 94, 0.2);
+    color: #bbf7d0;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.status-hidden {
+    background: rgba(148, 163, 184, 0.2);
+    color: #cbd5e1;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem 0;
+    color: #94a3b8;
+}
+
+.empty-state i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 0;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.action-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.4);
+    transform: translateY(-2px);
+}
+
+.action-icon {
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.action-content h4 {
+    color: #e2e8f0;
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.action-content p {
+    color: #94a3b8;
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 1024px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-dashboard {
+        padding: 1rem;
+    }
+    
+    .dashboard-title {
+        font-size: 2rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .article-item, .comment-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

@@ -1,0 +1,515 @@
+{% extends "admin/pink_base.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}{% if change %}编辑文章 - {{ original.title }}{% else %}新建文章{% endif %} - 盘古大仙洞府{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">🌸 盘古大仙洞府后台</a></h1>
+{% endblock %}
+
+{% block content_title %}
+<h1>{% if change %}编辑文章 - {{ original.title }}{% else %}✨ 新建文章{% endif %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="article-edit-container">
+    <form method="post" enctype="multipart/form-data" id="article_form">
+        {% csrf_token %}
+        
+        <!-- 基本信息区域 -->
+        <div class="edit-section">
+            <h3>📝 基本信息</h3>
+            <div class="form-row">
+                <div class="field-box">
+                    {{ form.title.label_tag }}
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <div class="error">{{ form.title.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="field-box">
+                    {{ form.cover.label_tag }}
+                    {{ form.cover }}
+                    {% if form.cover.errors %}
+                        <div class="error">{{ form.cover.errors }}</div>
+                    {% endif %}
+                    {% if change and original.cover %}
+                        <div class="current-cover">
+                            <p>当前封面图：</p>
+                            <img src="{{ original.cover.url }}" alt="当前封面" style="max-width: 200px; border-radius: 8px;">
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="field-box">
+                    {{ form.tags.label_tag }}
+                    {{ form.tags }}
+                    {% if form.tags.errors %}
+                        <div class="error">{{ form.tags.errors }}</div>
+                    {% endif %}
+                    <div class="help-text">选择相关标签，或按住Ctrl键多选</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容编辑区域 -->
+        <div class="edit-section">
+            <h3>📖 文章内容</h3>
+            <div class="form-row">
+                <div class="field-box">
+                    {{ form.content_md.label_tag }}
+                    <div class="markdown-editor">
+                        <div class="markdown-toolbar">
+                            <button type="button" onclick="insertMarkdown('**', '**')" title="加粗 (Ctrl+B)">
+                                <strong>B</strong>
+                            </button>
+                            <button type="button" onclick="insertMarkdown('*', '*')" title="斜体 (Ctrl+I)">
+                                <em>I</em>
+                            </button>
+                            <button type="button" onclick="insertMarkdown('`', '`')" title="代码">
+                                <code>&lt;/&gt;</code>
+                            </button>
+                            <button type="button" onclick="insertMarkdown('### ', '')" title="标题">
+                                H
+                            </button>
+                            <button type="button" onclick="insertMarkdown('[', '](url)')" title="链接 (Ctrl+K)">
+                                🔗
+                            </button>
+                            <button type="button" onclick="insertMarkdown('![', '](image-url)')" title="图片">
+                                🖼️
+                            </button>
+                            <button type="button" onclick="insertMarkdown('- ', '')" title="列表">
+                                📋
+                            </button>
+                            <button type="button" onclick="insertMarkdown('> ', '')" title="引用">
+                                "
+                            </button>
+                            <button type="button" onclick="togglePreview()" title="预览">
+                                👁️ 预览
+                            </button>
+                        </div>
+                        <div class="markdown-content">
+                            <textarea id="id_content_md" name="content_md" class="markdown-input" 
+                                     placeholder="在这里输入 Markdown 内容..."></textarea>
+                            <div id="markdown-preview" class="markdown-preview" style="display: none;"></div>
+                        </div>
+                    </div>
+                    {% if form.content_md.errors %}
+                        <div class="error">{{ form.content_md.errors }}</div>
+                    {% endif %}
+                    <div class="help-text">支持 Markdown 语法，可使用工具栏快速格式化</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 发布设置区域 -->
+        <div class="edit-section">
+            <h3>⚙️ 发布设置</h3>
+            <div class="form-row">
+                <div class="field-box">
+                    {{ form.published_at.label_tag }}
+                    {{ form.published_at }}
+                    {% if form.published_at.errors %}
+                        <div class="error">{{ form.published_at.errors }}</div>
+                    {% endif %}
+                    <div class="help-text">留空则立即发布</div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="field-box">
+                    {{ form.is_hidden.label_tag }}
+                    {{ form.is_hidden }}
+                    {% if form.is_hidden.errors %}
+                        <div class="error">{{ form.is_hidden.errors }}</div>
+                    {% endif %}
+                    <div class="help-text">隐藏的文章不会在前台显示</div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="field-box">
+                    {{ form.allow_comment.label_tag }}
+                    {{ form.allow_comment }}
+                    {% if form.allow_comment.errors %}
+                        <div class="error">{{ form.allow_comment.errors }}</div>
+                    {% endif %}
+                    <div class="help-text">允许读者对文章发表评论</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 提交按钮 -->
+        <div class="submit-row">
+            {% if change %}
+                <input type="submit" value="💾 保存修改" class="default" name="_save">
+                <input type="submit" value="💾 保存并继续编辑" name="_continue">
+                <input type="submit" value="💾 保存并新增" name="_addanother">
+                <a href="{% url 'admin:app_article_changelist' %}" class="button">返回列表</a>
+            {% else %}
+                <input type="submit" value="✨ 发布文章" class="default" name="_save">
+                <input type="submit" value="✨ 发布并继续编辑" name="_continue">
+                <input type="submit" value="✨ 发布并新增" name="_addanother">
+                <a href="{% url 'admin:app_article_changelist' %}" class="button">返回列表</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<style>
+.article-edit-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 32px var(--shadow-soft);
+    border: 1px solid var(--pink-lighter);
+}
+
+.edit-section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background: var(--warm-white);
+    border-radius: 12px;
+    border: 1px solid var(--pink-lighter);
+}
+
+.edit-section h3 {
+    color: var(--pink-dark);
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--pink-lighter);
+    font-size: 1.2rem;
+}
+
+.form-row {
+    margin-bottom: 20px;
+}
+
+.field-box {
+    width: 100%;
+}
+
+.field-box label {
+    display: block;
+    color: var(--text-dark);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.field-box input[type="text"], .field-box input[type="file"], 
+.field-box select, .field-box textarea {
+    width: 100%;
+    border: 2px solid var(--pink-lighter);
+    border-radius: 8px;
+    padding: 12px 16px;
+    background: white;
+    color: var(--text-dark);
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.field-box input[type="text"]:focus, .field-box select:focus, 
+.field-box textarea:focus {
+    border-color: var(--pink-primary);
+    box-shadow: 0 0 0 3px var(--shadow-pink);
+    outline: none;
+}
+
+.current-cover {
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--pink-lighter);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.current-cover p {
+    margin-bottom: 10px;
+    color: var(--text-medium);
+    font-weight: 500;
+}
+
+.current-cover img {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--shadow-soft);
+}
+
+.help-text {
+    color: var(--text-light);
+    font-size: 0.85rem;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.error {
+    color: #f44336;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+/* Markdown编辑器样式 */
+.markdown-editor {
+    border: 2px solid var(--pink-lighter);
+    border-radius: 12px;
+    overflow: hidden;
+    background: white;
+}
+
+.markdown-toolbar {
+    background: var(--pink-lighter);
+    padding: 12px;
+    border-bottom: 1px solid var(--pink-light);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.markdown-toolbar button {
+    background: white;
+    border: 1px solid var(--pink-light);
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.markdown-toolbar button:hover {
+    background: var(--pink-primary);
+    color: white;
+    border-color: var(--pink-primary);
+    transform: translateY(-1px);
+}
+
+.markdown-content {
+    display: flex;
+    height: 400px;
+}
+
+.markdown-input, .markdown-preview {
+    flex: 1;
+    padding: 20px;
+    border: none;
+    outline: none;
+    font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: none;
+}
+
+.markdown-input {
+    background: var(--warm-white);
+    border-right: 1px solid var(--pink-lighter);
+}
+
+.markdown-preview {
+    background: white;
+    overflow-y: auto;
+    border-left: 1px solid var(--pink-lighter);
+}
+
+/* 提交按钮区域 */
+.submit-row {
+    background: var(--warm-white);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--pink-lighter);
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.submit-row input[type="submit"] {
+    background: var(--gradient-pink);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px var(--shadow-pink);
+}
+
+.submit-row input[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--shadow-pink);
+}
+
+.submit-row .button {
+    background: var(--warm-gray);
+    color: var(--text-dark);
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px var(--shadow-soft);
+}
+
+.submit-row .button:hover {
+    background: var(--pink-lighter);
+    box-shadow: 0 4px 12px var(--shadow-soft);
+    color: var(--text-dark);
+    text-decoration: none;
+}
+
+.submit-row input.default {
+    background: var(--gradient-pink);
+}
+
+@media (max-width: 768px) {
+    .article-edit-container {
+        padding: 20px;
+    }
+    
+    .edit-section {
+        padding: 20px;
+    }
+    
+    .markdown-content {
+        flex-direction: column;
+        height: 500px;
+    }
+    
+    .markdown-input {
+        border-right: none;
+        border-bottom: 1px solid var(--pink-lighter);
+    }
+    
+    .submit-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .submit-row input[type="submit"], .submit-row .button {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
+<script>
+// Markdown编辑器功能
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('id_content_md');
+    const preview = document.getElementById('markdown-preview');
+    
+    // 初始化内容
+    {% if change %}
+    textarea.value = `{{ original.content_md|escapejs }}`;
+    {% endif %}
+    
+    // 键盘快捷键
+    textarea.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key) {
+                case 'b':
+                    e.preventDefault();
+                    insertMarkdown('**', '**');
+                    break;
+                case 'i':
+                    e.preventDefault();
+                    insertMarkdown('*', '*');
+                    break;
+                case 'k':
+                    e.preventDefault();
+                    insertMarkdown('[', '](url)');
+                    break;
+                case 's':
+                    e.preventDefault();
+                    document.querySelector('input[name="_save"]').click();
+                    break;
+            }
+        }
+    });
+    
+    // 实时预览更新
+    textarea.addEventListener('input', updatePreview);
+});
+
+function insertMarkdown(before, after) {
+    const textarea = document.getElementById('id_content_md');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    const replacement = before + selectedText + after;
+    
+    textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+    
+    // 重新定位光标
+    const newCursorPos = start + replacement.length;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+    textarea.focus();
+    
+    // 更新预览
+    updatePreview();
+}
+
+function togglePreview() {
+    const preview = document.getElementById('markdown-preview');
+    const textarea = document.getElementById('id_content_md');
+    
+    if (preview.style.display === 'none') {
+        updatePreview();
+        preview.style.display = 'block';
+        textarea.style.borderRight = '1px solid var(--pink-lighter)';
+    } else {
+        preview.style.display = 'none';
+    }
+}
+
+function updatePreview() {
+    const textarea = document.getElementById('id_content_md');
+    const preview = document.getElementById('markdown-preview');
+    
+    if (preview.style.display !== 'none') {
+        // 简单的Markdown转HTML转换
+        let html = textarea.value;
+        
+        // 标题
+        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+        
+        // 粗体和斜体
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        
+        // 代码
+        html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+        
+        // 链接
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+        
+        // 图片
+        html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; border-radius: 8px;">');
+        
+        // 列表
+        html = html.replace(/^- (.*$)/gim, '<li>$1</li>');
+        html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+        
+        // 引用
+        html = html.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
+        
+        // 段落
+        html = html.replace(/\n\n/g, '</p><p>');
+        html = '<p>' + html + '</p>';
+        
+        preview.innerHTML = html;
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>关于作者</title>
+    <link rel="stylesheet" href="https://unpkg.com/normalize.css/normalize.css">
+    <style>
+        /* ==================== 全局样式 ==================== */
+        :root {
+            color-scheme: dark;
+            --color-bg-deep: #05070d;
+            --color-bg-gradient-start: #090d16;
+            --color-text-light: #d9e6ff;
+            --color-text-sky: #8bc8ff;
+            --color-text-cyan: #38e4d8;
+            --color-card-bg: rgba(10, 18, 32, 0.78);
+            --color-card-border: rgba(63, 101, 152, 0.35);
+            --color-nav-bg: rgba(7, 12, 22, 0.9);
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: radial-gradient(circle at center, var(--color-bg-gradient-start), var(--color-bg-deep) 75%);
+            color: var(--color-text-light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.25s ease;
+        }
+
+        /* ==================== 字母雨背景 ==================== */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* ==================== 导航栏 ==================== */
+        .brand {
+            padding: 36px 24px 16px;
+            text-align: center;
+            letter-spacing: 0.4em;
+            position: relative;
+            z-index: 10;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 32px;
+            color: var(--color-text-sky);
+            text-shadow: 0 0 15px currentColor, 0 0 30px currentColor, 0 0 45px currentColor;
+            font-weight: 600;
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            padding: 16px 24px 22px;
+            position: sticky;
+            top: 0;
+            background: var(--color-nav-bg);
+            backdrop-filter: blur(14px);
+            z-index: 10;
+            border-bottom: 1px solid rgba(139, 200, 255, 0.1);
+        }
+
+        .nav a {
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.82);
+            transition: all 0.25s ease;
+            font-weight: 500;
+        }
+
+        .nav a:hover {
+            color: #ffffff;
+            background: rgba(139, 200, 255, 0.1);
+        }
+
+        .nav a.active {
+            color: #04121c;
+            background: linear-gradient(135deg, #7bd0ff, #38e4d8);
+            box-shadow: 0 10px 26px rgba(78, 208, 223, 0.32);
+            font-weight: 600;
+        }
+
+        /* ==================== 容器 ==================== */
+        .container {
+            max-width: 980px;
+            margin: 32px auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ==================== 卡片 ==================== */
+        .card {
+            background: var(--color-card-bg);
+            border: 1px solid var(--color-card-border);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 12px 35px rgba(9, 18, 33, 0.45);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 45px rgba(9, 18, 33, 0.6);
+        }
+
+        /* ==================== 按钮 ==================== */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border-radius: 32px;
+            background: linear-gradient(135deg, #78d7ff, #2ed6b5);
+            color: #071522;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            transition: all 0.25s ease;
+            border: none;
+            cursor: pointer;
+            text-shadow: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(78, 212, 220, 0.32);
+        }
+
+        /* ==================== 标签 ==================== */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            margin: 4px;
+            border-radius: 12px;
+            background: rgba(139, 200, 255, 0.1);
+            color: var(--color-text-sky);
+            font-size: 13px;
+            border: 1px solid rgba(139, 200, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background: rgba(139, 200, 255, 0.2);
+            border-color: rgba(139, 200, 255, 0.4);
+        }
+
+        /* ==================== 页脚 ==================== */
+        footer {
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 13px;
+            opacity: 0.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ==================== 响应式 ==================== */
+        @media (max-width: 768px) {
+            .brand h1 {
+                font-size: 24px;
+                letter-spacing: 0.3em;
+            }
+
+            .nav {
+                gap: 8px;
+                padding: 12px 16px;
+            }
+
+            .nav a {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .container {
+                padding: 0 16px;
+                margin: 20px auto;
+            }
+
+            .card {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 字母雨背景 -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- 导航栏 -->
+    <div class="brand">
+        <h1>盘古大仙洞府</h1>
+    </div>
+    <nav class="nav">
+        
+        <a href="index.html" class="">首页</a>
+        <a href="list.html" class="">动态</a>
+        <a href="board.html" class="">留言板</a>
+        <a href="about.html" class="active">关于作者</a>
+        
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container">
+        
+<style>
+    /* ==================== 关于页面样式 ==================== */
+    .about-wrapper {
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: 0 20px 80px;
+    }
+
+    .about-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .avatar-wrapper {
+        display: inline-flex;
+        padding: 4px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--color-text-sky), var(--color-text-cyan));
+        margin-bottom: 24px;
+    }
+
+    .avatar-inner {
+        width: 128px;
+        height: 128px;
+        border-radius: 50%;
+        background: #0a1220;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--color-text-sky);
+    }
+
+    .about-title {
+        font-size: clamp(26px, 5vw, 36px);
+        font-weight: 700;
+        color: var(--color-text-sky);
+        letter-spacing: 0.2em;
+        margin: 0 0 16px;
+        text-shadow: 0 0 8px rgba(125, 211, 252, 0.4), 0 0 16px rgba(125, 211, 252, 0.3);
+    }
+
+    .about-subtitle {
+        font-size: clamp(16px, 3vw, 20px);
+        color: var(--color-text-light);
+        opacity: 0.9;
+        margin-bottom: 24px;
+    }
+
+    .about-description {
+        font-size: 16px;
+        color: var(--color-text-sky);
+        opacity: 0.8;
+        margin-bottom: 24px;
+    }
+
+    .about-badges {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        font-size: 14px;
+    }
+
+    .badge {
+        padding: 10px 18px;
+        background: rgba(139, 200, 255, 0.15);
+        border: 1px solid rgba(139, 200, 255, 0.25);
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+
+    .section-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--color-text-sky);
+        letter-spacing: 0.3em;
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 60px;
+    }
+
+    .info-card {
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-card-border);
+        border-radius: 20px;
+        padding: 28px;
+        backdrop-filter: blur(14px);
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 48px rgba(9, 18, 33, 0.6);
+    }
+
+    .card-icon {
+        font-size: 28px;
+        margin-bottom: 16px;
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--color-text-light);
+        margin-bottom: 12px;
+    }
+
+    .card-content {
+        font-size: 14px;
+        opacity: 0.8;
+        line-height: 1.7;
+    }
+
+    .card-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .card-content li {
+        padding: 4px 0;
+    }
+
+    .card-content li:before {
+        content: "• ";
+        color: var(--color-text-sky);
+        font-weight: bold;
+        margin-right: 8px;
+    }
+
+    .card-flex {
+        display: flex;
+        gap: 16px;
+    }
+
+    .card-flex-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .card-flex-content {
+        flex: 1;
+    }
+
+    .card-flex-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--color-text-light);
+        margin-bottom: 8px;
+    }
+
+    .card-flex-subtitle {
+        color: var(--color-text-sky);
+        opacity: 0.9;
+        margin-bottom: 8px;
+    }
+
+    .card-flex-text {
+        font-size: 13px;
+        opacity: 0.7;
+        margin-top: 8px;
+    }
+
+    .project-card {
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-card-border);
+        border-radius: 20px;
+        padding: 28px;
+        backdrop-filter: blur(14px);
+        margin-bottom: 24px;
+    }
+
+    .project-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--color-text-light);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .project-subtitle {
+        color: var(--color-text-sky);
+        opacity: 0.9;
+        margin-bottom: 16px;
+    }
+
+    .eval-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+    }
+
+    .eval-item {
+        padding: 16px 0;
+    }
+
+    .eval-icon {
+        margin-right: 8px;
+    }
+
+    .eval-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--color-text-light);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+
+    .eval-text {
+        font-size: 14px;
+        opacity: 0.8;
+    }
+
+    .contact-card {
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-card-border);
+        border-radius: 20px;
+        padding: 28px;
+        backdrop-filter: blur(14px);
+        text-align: center;
+        margin-top: 60px;
+    }
+
+    .contact-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--color-text-light);
+        margin-bottom: 20px;
+    }
+
+    .contact-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 16px;
+    }
+
+    .contact-link {
+        padding: 12px 24px;
+        background: rgba(139, 200, 255, 0.15);
+        border: 1px solid rgba(139, 200, 255, 0.25);
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .contact-link:hover {
+        background: rgba(139, 200, 255, 0.25);
+        border-color: rgba(139, 200, 255, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* ==================== 响应式 ==================== */
+    @media (max-width: 768px) {
+        .about-wrapper {
+            padding-bottom: 60px;
+        }
+
+        .avatar-inner {
+            width: 100px;
+            height: 100px;
+            font-size: 28px;
+        }
+
+        .about-badges {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .badge {
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 20px;
+            letter-spacing: 0.2em;
+        }
+
+        .grid-2 {
+            grid-template-columns: 1fr;
+        }
+
+        .eval-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-links {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="about-wrapper">
+    <!-- 个人简介头部 -->
+    <div class="about-header">
+        <div class="avatar-wrapper">
+            <div class="avatar-inner">盘古</div>
+        </div>
+        <h1 class="about-title">AI教育与数字人领域技术专家</h1>
+        <p class="about-subtitle">资深产品架构设计师 | 全栈技术开发者 | 海外市场运营专家</p>
+        <p class="about-description">曾任新浪、网易、硅基智能产研总监</p>
+        <div class="about-badges">
+            <span class="badge">📍 北京海淀上地</span>
+            <span class="badge">🎓 Hawaii Pacific University AI硕士</span>
+            <span class="badge">📧 wisedragon@aliyun.com</span>
+        </div>
+    </div>
+
+    <!-- 核心优势 -->
+    <h2 class="section-title">核心优势 🎖️</h2>
+    <div class="grid-2">
+        <div class="info-card">
+            <div class="card-icon">🥇</div>
+            <h3 class="card-title">AI与数字人核心技术</h3>
+            <div class="card-content">
+                <ul>
+                    <li>大模型开发：训练/剪枝/量化/移动端部署</li>
+                    <li>炎帝多模态大模型©核心开发</li>
+                    <li>数字人全链路：实时交互、音色克隆、直播防封</li>
+                    <li>AI教育应用：手语教学、口语评测、智能平板</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="card-icon">🥈</div>
+            <h3 class="card-title">全栈开发能力</h3>
+            <div class="card-content">
+                <ul>
+                    <li>语言：Kotlin/Java/Python/Swift/C++</li>
+                    <li>框架：TensorFlow/PyTorch/Compose/SwiftUI/Flutter</li>
+                    <li>系统级开发：Android/iOS逆向、ROM定制、云手机</li>
+                    <li>音视频技术：OpenGL、FFmpeg、WebRTC、RTMP</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="card-icon">🥉</div>
+            <h3 class="card-title">产品商业化&海外市场</h3>
+            <div class="card-content">
+                <ul>
+                    <li>Google市场变现策略（IAA/IAP）</li>
+                    <li>广告限流优化、ECPM优化</li>
+                    <li>市场调研、增长策略</li>
+                    <li>竞品分析与数据驱动优化</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="card-icon">💰</div>
+            <h3 class="card-title">商业化成果</h3>
+            <div class="card-content">
+                <ul>
+                    <li>产品次留59.3%</li>
+                    <li>主导项目单月盈利超700万美金</li>
+                    <li>曾获CEO特别奖</li>
+                    <li>精通国际化产品策略</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 教育背景 -->
+    <h2 class="section-title">教育背景 🎓</h2>
+    <div style="margin-bottom: 60px;">
+        <div class="info-card card-flex" style="margin-bottom: 16px;">
+            <div class="card-flex-icon">🎓</div>
+            <div class="card-flex-content">
+                <h3 class="card-flex-title">Hawaii Pacific University</h3>
+                <p class="card-flex-subtitle">自然与计算科学研究所 | 数学系 | 人工智能理学硕士</p>
+                <p class="card-flex-text">专注于人工智能、机器学习、深度学习等前沿技术研究</p>
+            </div>
+        </div>
+
+        <div class="info-card card-flex">
+            <div class="card-flex-icon">🎓</div>
+            <div class="card-flex-content">
+                <h3 class="card-flex-title">燕山大学</h3>
+                <p class="card-flex-subtitle">计算机科学与技术 | 本科</p>
+                <p class="card-flex-text">扎实的计算机科学基础，涵盖算法、数据结构、软件工程等核心课程</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 代表作品 -->
+    <h2 class="section-title">代表作品 🚀</h2>
+    <div style="margin-bottom: 60px;">
+        <div class="project-card">
+            <h3 class="project-title">
+                <span>🤖</span>
+                ChatMate.AI / Charlotte.AI
+            </h3>
+            <p class="project-subtitle">AI 社交 & 角色扮演 & 情感陪伴</p>
+            <div class="card-content">
+                <ul>
+                    <li>功能：多角色 AI 互动，3000+ 角色，支持 RAG + Prompt 技术</li>
+                    <li>技术：Gemma27B + ReverbASR，音色克隆（OpenVoice），350M 端侧大模型</li>
+                    <li>个性化 AI 训练，提供沉浸式情感陪伴体验</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="project-card">
+            <h3 class="project-title">
+                <span>🔥</span>
+                炎帝多模态大模型
+            </h3>
+            <p class="project-subtitle">类 ChatGPT-4o 级别的硅基自研大模型（已完成国家备案）</p>
+            <div class="card-content">
+                <ul>
+                    <li>功能：多模态大语言模型，支持文本、语音、视频输入及生成</li>
+                    <li>技术：采用 MoE 架构，融合 LLaMA3、Gemini、ChatGLM4</li>
+                    <li>优化：支持流式输出，FlashAttention 推理加速，适配移动端</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="project-card">
+            <h3 class="project-title">
+                <span>🌐</span>
+                Anylang.ai
+            </h3>
+            <p class="project-subtitle">AI 视频翻译平台</p>
+            <div class="card-content">
+                <ul>
+                    <li>功能：实时 AI 视频翻译、自动字幕生成、TTS 音色克隆</li>
+                    <li>技术：Whisper V3 + DeepSpeed + ELK Stack，支持流式翻译 API</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="project-card">
+            <h3 class="project-title">
+                <span>📺</span>
+                数字人直播一体机
+            </h3>
+            <p class="project-subtitle">软硬件 AI 直播方案</p>
+            <div class="card-content">
+                <ul>
+                    <li>功能：Rom 定制防封号、AI 视频换脸、实时字幕翻译</li>
+                    <li>技术：Android Framework Hook + FFmpeg + WebRTC</li>
+                    <li>支持多平台 AI 直播，RTMP 服务器数据替换</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 开源&技术研究 -->
+    <h2 class="section-title">开源&技术研究 🔬</h2>
+    <div class="grid-2" style="margin-bottom: 60px;">
+        <div class="info-card">
+            <h3 class="card-title">移动端离线大模型</h3>
+            <p class="card-content">支持 4G RAM 设备运行 7B 模型，支持 int4 量化，优化 MNN 推理加速</p>
+        </div>
+
+        <div class="info-card">
+            <h3 class="card-title">AI 语音&视频生成</h3>
+            <p class="card-content">自研 TTS 方案，支持情感音色克隆，AIGC 视频生成</p>
+        </div>
+
+        <div class="info-card">
+            <h3 class="card-title">AI 硬件优化</h3>
+            <p class="card-content">M2 Mac 上 7B LLaMa-v2 速度达 16 token/s，Pixel 3 上实现 1 token/s 运行</p>
+        </div>
+
+        <div class="info-card">
+            <h3 class="card-title">AIGC 视觉前沿技术</h3>
+            <p class="card-content">ComfyUI + Stable Diffusion XL + AnimateDiff + N8N + Wan2.2 + GeneFace++ + MultiTalk + Leffa</p>
+        </div>
+    </div>
+
+    <!-- 职业特点 -->
+    <h2 class="section-title">职业特点 💼</h2>
+    <div style="margin-bottom: 60px;">
+        <div class="info-card card-flex" style="margin-bottom: 16px;">
+            <div class="card-flex-icon">🚀</div>
+            <div class="card-flex-content">
+                <h3 class="card-flex-title">极致的独立开发能力</h3>
+                <p class="card-flex-text">精通一人完成从0到1的产品全流程，能够独立完成从产品设计、算法开发、客户端实现、再到商业化的全过程</p>
+            </div>
+        </div>
+
+        <div class="info-card card-flex" style="margin-bottom: 16px;">
+            <div class="card-flex-icon">🔗</div>
+            <div class="card-flex-content">
+                <h3 class="card-flex-title">跨平台技术整合</h3>
+                <p class="card-flex-text">精通移动端、服务端、AI算法多领域技术，能够实现全链路技术闭环</p>
+            </div>
+        </div>
+
+        <div class="info-card card-flex" style="margin-bottom: 16px;">
+            <div class="card-flex-icon">💡</div>
+            <div class="card-flex-content">
+                <h3 class="card-flex-title">创新性产品设计</h3>
+                <p class="card-flex-text">擅长将前沿AI技术转化为商业可行的产品，具备敏锐的市场洞察力和产品思维</p>
+            </div>
+        </div>
+
+        <div class="info-card card-flex">
+            <div class="card-flex-icon">🌍</div>
+            <div class="card-flex-content">
+                <h3 class="card-flex-title">海外市场运营</h3>
+                <p class="card-flex-text">深谙Google市场规则，精通IAA、IAP产品国际化策略和各类商业化打法</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自我评价 -->
+    <h2 class="section-title">自我评价 🎯</h2>
+    <div class="info-card" style="margin-bottom: 60px;">
+        <div class="eval-grid">
+            <div class="eval-item">
+                <h3 class="eval-title">
+                    <span class="eval-icon">✅</span>
+                    全栈能力覆盖
+                </h3>
+                <p class="eval-text">AI 研发 + 端侧优化 + 大模型训练 + 商业化 + 移动端 + 服务端 + Web 端</p>
+            </div>
+
+            <div class="eval-item">
+                <h3 class="eval-title">
+                    <span class="eval-icon">✅</span>
+                    端侧 AI 领先者
+                </h3>
+                <p class="eval-text">移动端 AI 端侧优化、离线大模型、自研 AI 直播方案</p>
+            </div>
+
+            <div class="eval-item">
+                <h3 class="eval-title">
+                    <span class="eval-icon">✅</span>
+                    AIGC 视觉前沿技术
+                </h3>
+                <p class="eval-text">ComfyUI + Stable Diffusion XL + AnimateDiff + N8N + Wan2.2 + GeneFace++ + MultiTalk + Leffa</p>
+            </div>
+
+            <div class="eval-item">
+                <h3 class="eval-title">
+                    <span class="eval-icon">✅</span>
+                    商业化落地经验
+                </h3>
+                <p class="eval-text">买量投放、增长、市场分析，产品变现能力强</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 联系方式 -->
+    <div class="contact-card">
+        <h3 class="contact-title">联系方式</h3>
+        <div class="contact-links">
+            <a href="mailto:wisedragon@aliyun.com" class="contact-link">📧 邮箱联系</a>
+            <a href="https://github.com/Pangu-Immortal" target="_blank" rel="noreferrer" class="contact-link">🐙 GitHub</a>
+            <span class="contact-link">🌐 技术博客</span>
+            <span class="contact-link">💼 职业咨询</span>
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    <!-- 页脚 -->
+    <footer>© 盘古大仙洞府 - 基于 Django MTV 模式构建</footer>
+
+    <!-- 字母雨脚本 -->
+    <script>
+    (function() {
+        const canvas = document.getElementById('matrix-canvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+*/#@$&'.split('');
+
+        let dims = { w: 0, h: 0, dpr: 1, fontSize: 16 };
+        let drops = [];
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameInterval = 1000 / targetFPS;
+
+        function setup() {
+            dims = {
+                w: window.innerWidth,
+                h: window.innerHeight,
+                dpr: window.devicePixelRatio || 1,
+                fontSize: Math.max(14, Math.floor(window.innerWidth / 100))
+            };
+
+            canvas.width = dims.w * dims.dpr;
+            canvas.height = dims.h * dims.dpr;
+            ctx.setTransform(dims.dpr, 0, 0, dims.dpr, 0, 0);
+
+            const columns = Math.floor(dims.w / dims.fontSize);
+            drops = Array(columns).fill(0).map(() => Math.random() * -dims.h / dims.fontSize);
+        }
+
+        function draw(currentTime) {
+            if (currentTime - lastTime < frameInterval) {
+                requestAnimationFrame(draw);
+                return;
+            }
+            lastTime = currentTime;
+
+            ctx.fillStyle = 'rgba(3, 6, 12, 0.08)';
+            ctx.fillRect(0, 0, dims.w, dims.h);
+
+            ctx.font = dims.fontSize + 'px "JetBrains Mono", "SFMono-Regular", "Menlo", monospace';
+
+            drops.forEach((y, index) => {
+                for (let i = 0; i < 3; i++) {
+                    const charY = (y - i * 2) * dims.fontSize;
+                    if (charY > 0 && charY < dims.h) {
+                        const text = chars[Math.floor(Math.random() * chars.length)];
+                        const x = index * dims.fontSize;
+                        const opacity = i === 0 ? 0.95 : 0.7 - (i * 0.2);
+                        const brightness = i === 0 ? 75 : 65 - (i * 10);
+
+                        ctx.fillStyle = `hsla(${190 + (index % 40)}, 90%, ${brightness}%, ${opacity})`;
+                        ctx.fillText(text, x, charY);
+                    }
+                }
+
+                if (y * dims.fontSize > dims.h + dims.fontSize * 5) {
+                    drops[index] = Math.random() > 0.98 ? Math.random() * -dims.h / dims.fontSize : -dims.fontSize;
+                } else {
+                    drops[index] += 0.5 + Math.random() * 0.7;
+                }
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        setup();
+
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(setup, 100);
+        });
+
+        requestAnimationFrame(draw);
+    })();
+    </script>
+</body>
+</html>

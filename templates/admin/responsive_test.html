@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>响应式管理后台测试 - 粉色系暖色风</title>
+    <link rel="stylesheet" href="/static/admin/pink-admin-responsive.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 40px;
+        }
+        .test-title {
+            color: var(--pink-primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--pink-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="pink-container">
+        <h1 class="pink-text-3xl pink-font-bold pink-text-primary pink-mb-8">🌸 粉色系暖色风响应式管理后台测试</h1>
+        
+        <!-- 导航栏测试 -->
+        <div class="test-section">
+            <h2 class="test-title pink-text-xl">导航栏组件</h2>
+            <nav class="pink-navbar">
+                <div class="pink-navbar-container">
+                    <div class="pink-navbar-brand">
+                        <a href="#" class="pink-navbar-brand-link">盘古大仙洞府</a>
+                    </div>
+                    <button class="pink-navbar-toggle" onclick="toggleNav()">☰</button>
+                    <nav class="pink-navbar-nav" id="test-nav">
+                        <a href="#" class="pink-navbar-link">管理面板</a>
+                        <a href="#" class="pink-navbar-link">文章管理</a>
+                        <a href="#" class="pink-navbar-link">标签管理</a>
+                        <a href="#" class="pink-navbar-link">评论管理</a>
+                    </nav>
+                </div>
+            </nav>
+        </div>
+
+        <!-- 网格系统测试 -->
+        <div class="test-section">
+            <h2 class="test-title pink-text-xl">响应式网格系统</h2>
+            <div class="pink-grid pink-grid-cols-1 pink-md:grid-cols-2 pink-lg:grid-cols-4 pink-gap-4">
+                <div class="pink-card pink-text-center">
+                    <div class="pink-text-2xl pink-font-bold pink-text-primary">42</div>
+                    <div class="pink-text-medium">总文章数</div>
+                </div>
+                <div class="pink-card pink-text-center">
+                    <div class="pink-text-2xl pink-font-bold pink-text-secondary">38</div>
+                    <div class="pink-text-medium">已发布文章</div>
+                </div>
+                <div class="pink-card pink-text-center">
+                    <div class="pink-text-2xl pink-font-bold pink-text-primary">156</div>
+                    <div class="pink-text-medium">总评论数</div>
+                </div>
+                <div class="pink-card pink-text-center">
+                    <div class="pink-text-2xl pink-font-bold pink-text-secondary">12</div>
+                    <div class="pink-text-medium">标签数量</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 按钮组件测试 -->
+        <div class="test-section">
+            <h2 class="test-title pink-text-xl">按钮组件</h2>
+            <div class="pink-flex pink-flex-wrap pink-gap-3 pink-mb-4">
+                <button class="pink-btn pink-btn-primary">主要按钮</button>
+                <button class="pink-btn pink-btn-secondary">次要按钮</button>
+                <button class="pink-btn pink-btn-outline">轮廓按钮</button>
+                <button class="pink-btn pink-btn-primary" disabled>禁用按钮</button>
+            </div>
+            <div class="pink-flex pink-flex-wrap pink-gap-3">
+                <button class="pink-btn pink-btn-sm pink-btn-primary">小按钮</button>
+                <button class="pink-btn pink-btn-primary">默认按钮</button>
+                <button class="pink-btn pink-btn-lg pink-btn-primary">大按钮</button>
+            </div>
+        </div>
+
+        <!-- 表单组件测试 -->
+        <div class="test-section">
+            <h2 class="test-title pink-text-xl">表单组件</h2>
+            <div class="pink-card">
+                <div class="pink-card-body">
+                    <div class="pink-form-grid pink-form-grid-2">
+                        <div class="pink-form-group">
+                            <label class="pink-form-label">文章标题</label>
+                            <input type="text" class="pink-form-control" placeholder="请输入文章标题">
+                        </div>
+                        <div class="pink-form-group">
+                            <label class="pink-form-label">作者</label>
+                            <input type="text" class="pink-form-control" placeholder="请输入作者名称">
+                        </div>
+                    </div>
+                    <div class="pink-form-group">
+                        <label class="pink-form-label">文章内容</label>
+                        <textarea class="pink-form-control pink-form-textarea" placeholder="请输入文章内容"></textarea>
+                    </div>
+                    <div class="pink-form-group">
+                        <label class="pink-form-label">分类</label>
+                        <select class="pink-form-control pink-form-select">
+                            <option>技术文章</option>
+                            <option>生活随笔</option>
+                            <option>学习笔记</option>
+                        </select>
+                    </div>
+                    <div class="pink-form-check">
+                        <input type="checkbox" class="pink-form-check-input" id="allow-comment">
+                        <label class="pink-form-check-label" for="allow-comment">允许评论</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 表格组件测试 -->
+        <div class="test-section">
+            <h2 class="test-title pink-text-xl">表格组件</h2>
+            <div class="pink-table-container">
+                <table class="pink-table">
+                    <thead>
+                        <tr>
+                            <th>标题</th>
+                            <th class="pink-mobile:hidden">发布时间</th>
+                            <th>状态</th>
+                            <th class="pink-mobile:hidden">评论</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="pink-flex pink-items-center pink-gap-3">
+                                    <div class="pink-bg-light pink-rounded-lg pink-flex pink-items-center pink-justify-center" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-file-alt pink-text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="pink-font-semibold pink-text-dark pink-mb-1">Vue3 响应式系统深度解析</h4>
+                                        <small class="pink-text-light">发布于 2024-01-15 14:30</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="pink-mobile:hidden">2024-01-15</td>
+                            <td><span class="pink-status pink-status-published">显示</span></td>
+                            <td class="pink-mobile:hidden"><span class="pink-text-success">开启</span></td>
+                            <td>
+                                <div class="pink-flex pink-gap-2 pink-table-actions">
+                                    <button class="pink-btn pink-btn-sm pink-btn-outline">✏️ 编辑</button>
+                                    <button class="pink-btn pink-btn-sm pink-btn-outline pink-text-danger">🗑️ 删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="pink-flex pink-items-center pink-gap-3">
+                                    <div class="pink-bg-light pink-rounded-lg pink-flex pink-items-center pink-justify-center" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-file-alt pink-text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="pink-font-semibold pink-text-dark pink-mb-1">Django 管理后台美化实践</h4>
+                                        <small class="pink-text-light">发布于 2024-01-14 10:20</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="pink-mobile:hidden">2024-01-14</td>
+                            <td><span class="pink-status pink-status-draft">隐藏</span></td>
+                            <td class="pink-mobile:hidden"><span class="pink-text-medium">关闭</span></td>
+                            <td>
+                                <div class="pink-flex pink-gap-2 pink-table-actions">
+                                    <button class="pink-btn pink-btn-sm pink-btn-outline">✏️ 编辑</button>
+                                    <button class="pink-btn pink-btn-sm pink-btn-outline pink-text-danger">🗑️ 删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 模态框测试 -->
+        <div class="test-section">
+            <h2 class="test-title pink-text-xl">模态框组件</h2>
+            <button class="pink-btn pink-btn-primary" onclick="openModal()">打开模态框</button>
+            
+            <div class="pink-modal" id="test-modal">
+                <div class="pink-modal-content">
+                    <div class="pink-modal-header">
+                        <h3 class="pink-modal-title">确认删除</h3>
+                        <button class="pink-modal-close" onclick="closeModal()">&times;</button>
+                    </div>
+                    <div class="pink-modal-body">
+                        <p>您确定要删除这篇文章吗？此操作无法撤销。</p>
+                    </div>
+                    <div class="pink-modal-footer">
+                        <button class="pink-btn pink-btn-outline" onclick="closeModal()">取消</button>
+                        <button class="pink-btn pink-btn-primary pink-text-danger">确认删除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 响应式测试提示 -->
+        <div class="test-section">
+            <h2 class="test-title pink-text-xl">响应式测试</h2>
+            <div class="pink-card">
+                <div class="pink-card-body">
+                    <p class="pink-mb-3">请尝试调整浏览器窗口大小，测试不同屏幕尺寸下的显示效果：</p>
+                    <ul class="pink-space-y-2">
+                        <li>📱 手机端（< 768px）</li>
+                        <li>📱 平板端（768px - 1024px）</li>
+                        <li>💻 桌面端（> 1024px）</li>
+                    </ul>
+                    <div class="pink-mt-4 pink-p-3 pink-bg-light pink-rounded-lg">
+                        <strong>当前视口宽度：</strong> <span id="viewport-width"></span>px
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 导航切换
+        function toggleNav() {
+            const nav = document.getElementById('test-nav');
+            nav.classList.toggle('pink-active');
+        }
+
+        // 模态框控制
+        function openModal() {
+            const modal = document.getElementById('test-modal');
+            modal.classList.add('pink-active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('test-modal');
+            modal.classList.remove('pink-active');
+        }
+
+        // 显示视口宽度
+        function updateViewportWidth() {
+            document.getElementById('viewport-width').textContent = window.innerWidth;
+        }
+
+        // 初始化
+        updateViewportWidth();
+        window.addEventListener('resize', updateViewportWidth);
+
+        // 点击模态框外部关闭
+        document.getElementById('test-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
