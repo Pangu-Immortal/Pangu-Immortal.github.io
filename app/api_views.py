@@ -15,7 +15,7 @@ from functools import wraps
 import json
 import base64
 import re
-from .models import Article, Tag, Comment, BoardMessage
+from .models import Article, Tag
 
 
 def cors_headers(view_func):

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>留言板</title>
+    <title>洞府动态</title>
     <link rel="stylesheet" href="https://unpkg.com/normalize.css/normalize.css">
     <style>
         /* ==================== 全局样式 ==================== */
@@ -219,8 +219,8 @@
     <nav class="nav">
         
         <a href="index.html" class="">首页</a>
-        <a href="list.html" class="">动态</a>
-        <a href="board.html" class="active">留言板</a>
+        <a href="list.html" class="active">动态</a>
+        <a href="board.html" class="">留言板</a>
         <a href="about.html" class="">关于作者</a>
         
     </nav>
@@ -229,203 +229,260 @@
     <div class="container">
         
 <style>
-    /* ==================== 留言板样式 ==================== */
-    .board-wrapper {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 0 20px 80px;
+  /* 文章列表页面样式 */
+  .articles-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* 标签侧边栏 */
+  .sidebar {
+    position: sticky;
+    top: 90px;
+    align-self: start;
+  }
+
+  .sidebar h3 {
+    margin: 0 0 20px;
+    font-size: 18px;
+    letter-spacing: 0.2em;
+    color: var(--color-text-sky);
+  }
+
+  .tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tag-link {
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 14px;
+  }
+
+  .tag-link:hover {
+    background: rgba(139, 200, 255, 0.1);
+    color: var(--color-text-sky);
+  }
+
+  .tag-link.active {
+    background: rgba(139, 200, 255, 0.15);
+    color: var(--color-text-sky);
+    font-weight: 600;
+  }
+
+  /* 文章卡片 */
+  .article-card {
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-card-border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .article-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(9, 18, 33, 0.6);
+    border-color: rgba(139, 200, 255, 0.3);
+  }
+
+  .article-title {
+    margin: 0 0 16px;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-sky);
+    letter-spacing: 0.02em;
+  }
+
+  .article-title a {
+    color: inherit;
+  }
+
+  .article-title a:hover {
+    color: var(--color-text-cyan);
+  }
+
+  .article-cover {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 16px 0;
+    object-fit: cover;
+  }
+
+  .article-summary {
+    opacity: 0.82;
+    line-height: 1.8;
+    margin: 16px 0;
+    color: var(--color-text-light);
+  }
+
+  .article-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+
+  .article-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(139, 200, 255, 0.1);
+    color: var(--color-text-sky);
+    font-size: 13px;
+    border: 1px solid rgba(139, 200, 255, 0.2);
+  }
+
+  /* 分页 */
+  .pagination {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 32px;
+    opacity: 0.85;
+  }
+
+  .pagination button,
+  .pagination a.btn-primary {
+    padding: 10px 24px;
+  }
+
+  .pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* 空状态 */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    opacity: 0.6;
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .articles-layout {
+      grid-template-columns: 1fr;
+      gap: 16px;
     }
 
-    .board-form-card {
-        background: var(--color-card-bg);
-        border: 1px solid var(--color-card-border);
-        border-radius: 20px;
-        padding: 28px;
-        margin-bottom: 32px;
-        backdrop-filter: blur(14px);
+    .sidebar {
+      position: static;
+      order: -1;
     }
 
-    .board-title {
-        font-size: 22px;
-        font-weight: 600;
-        color: var(--color-text-sky);
-        letter-spacing: 0.3em;
-        margin-bottom: 16px;
+    .sidebar h3 {
+      font-size: 16px;
     }
 
-    .board-hint {
-        font-size: 14px;
-        opacity: 0.7;
-        margin-bottom: 20px;
+    .tag-list {
+      flex-direction: row;
+      flex-wrap: wrap;
     }
 
-    .board-textarea {
-        width: 100%;
-        border-radius: 16px;
-        padding: 16px;
-        border: 1px solid rgba(139, 200, 255, 0.3);
-        background: rgba(8, 14, 24, 0.8);
-        color: #e9f4ff;
-        font-size: 14px;
-        line-height: 1.6;
-        resize: vertical;
-        outline: none;
-        transition: all 0.3s ease;
-        font-family: inherit;
+    .article-card {
+      padding: 20px;
     }
 
-    .board-textarea:focus {
-        border-color: var(--color-text-sky);
-        box-shadow: 0 0 0 3px rgba(139, 200, 255, 0.1);
+    .article-title {
+      font-size: 20px;
     }
-
-    .board-textarea::placeholder {
-        color: rgba(217, 230, 255, 0.4);
-    }
-
-    .board-form-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 12px;
-    }
-
-    .char-count {
-        font-size: 12px;
-        opacity: 0.5;
-    }
-
-    .message-list {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .message-item {
-        background: var(--color-card-bg);
-        border: 1px solid rgba(139, 200, 255, 0.15);
-        border-radius: 16px;
-        padding: 24px;
-        backdrop-filter: blur(14px);
-        transition: all 0.3s ease;
-    }
-
-    .message-item:hover {
-        border-color: rgba(139, 200, 255, 0.25);
-        box-shadow: 0 8px 24px rgba(9, 18, 33, 0.4);
-    }
-
-    .message-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-
-    .message-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        overflow: hidden;
-        flex-shrink: 0;
-        background: linear-gradient(135deg, var(--color-text-sky), var(--color-text-cyan));
-    }
-
-    .message-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .message-info {
-        flex: 1;
-        font-size: 14px;
-    }
-
-    .message-author {
-        font-weight: 600;
-        color: var(--color-text-sky);
-    }
-
-    .message-meta {
-        display: flex;
-        gap: 8px;
-        opacity: 0.6;
-        font-size: 13px;
-        margin-top: 2px;
-    }
-
-    .message-content {
-        font-size: 14px;
-        line-height: 1.75;
-        opacity: 0.85;
-        word-wrap: break-word;
-        padding-left: 52px;
-    }
-
-    .empty-message {
-        text-align: center;
-        padding: 60px 20px;
-        opacity: 0.6;
-        font-size: 14px;
-    }
-
-    .static-notice {
-        padding: 48px 20px;
-        text-align: center;
-        opacity: 0.7;
-        font-size: 14px;
-        line-height: 1.8;
-    }
-
-    .static-notice p {
-        margin: 12px 0;
-    }
-
-    /* ==================== 响应式 ==================== */
-    @media (max-width: 768px) {
-        .board-wrapper {
-            padding-bottom: 60px;
-        }
-
-        .board-form-card {
-            padding: 20px;
-        }
-
-        .message-item {
-            padding: 20px;
-        }
-
-        .message-content {
-            padding-left: 0;
-            margin-top: 12px;
-        }
-
-        .message-avatar {
-            width: 36px;
-            height: 36px;
-            font-size: 14px;
-        }
-    }
+  }
 </style>
 
-<div class="board-wrapper">
-    <!-- 留言提交表单 -->
-    <div class="board-form-card">
-        <h2 class="board-title">留言板</h2>
+<div class="articles-layout">
+  <!-- 标签侧边栏 -->
+  <aside class="sidebar">
+    <div class="card">
+      <h3>标签筛选</h3>
+      <div class="tag-list">
         
-            <div class="static-notice">
-                <p>静态站点暂不支持留言功能</p>
-                <p style="font-size: 13px; margin-top: 16px;">请访问动态版本与我们互动</p>
-            </div>
+          <a href="list.html" class="tag-link ">
+            📋 全部
+          </a>
+          
+            <a href="list_tag_IDE激活.html" class="tag-link ">
+              # IDE激活
+            </a>
+          
+            <a href="list_tag_JetBrains.html" class="tag-link ">
+              # JetBrains
+            </a>
+          
+            <a href="list_tag_PyCharm.html" class="tag-link active">
+              # PyCharm
+            </a>
+          
+            <a href="list_tag_开发工具.html" class="tag-link ">
+              # 开发工具
+            </a>
+          
+            <a href="list_tag_技术教程.html" class="tag-link ">
+              # 技术教程
+            </a>
+          
         
+      </div>
     </div>
+  </aside>
 
-    <!-- 留言列表 -->
+  <!-- 文章列表 -->
+  <main>
     
+      <article class="article-card">
+        <h2 class="article-title">
+          
+          <a href="article_1.html">JetBrains 全家桶 2025 永久激活完整教程</a>
+          
+        </h2>
+
+        
+        <div class="article-meta">
+          
+          <span class="article-tag"># IDE激活</span>
+          
+          <span class="article-tag"># JetBrains</span>
+          
+          <span class="article-tag"># PyCharm</span>
+          
+          <span class="article-tag"># 开发工具</span>
+          
+          <span class="article-tag"># 技术教程</span>
+          
+        </div>
+        
+
+        
+
+        <p class="article-summary"># JetBrains 全家桶 2025 永久激活完整教程
+
+&gt; 本教程适用于 PyCharm、IntelliJ IDEA、WebStorm、DataGrip 等 JetBrains 全系列产品
+
+## 📦 激活工具下载
+
+### Windows 系统
+- 下载链接：[win2099.zip]...</p>
+
+        
+        <a href="article_1.html" class="btn-primary">阅读全文 →</a>
+        
+      </article>
+    
+
+    <!-- 分页 -->
+    
+  </main>
 </div>
-
-
 
     </div>
 

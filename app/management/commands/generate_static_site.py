@@ -22,7 +22,7 @@ import shutil
 import markdown as md
 import bleach
 
-from app.models import Article, Tag, Comment, BoardMessage
+from app.models import Article, Tag
 
 
 class Command(BaseCommand):
@@ -54,7 +54,7 @@ class Command(BaseCommand):
         self.generate_about()
 
         # 5. 生成留言板页面
-        self.generate_board()
+        # self.generate_board()  # 留言板功能已移除
 
         # 6. 复制静态资源
         self.copy_static_files()
@@ -130,7 +130,7 @@ class Command(BaseCommand):
         articles = Article.objects.filter(is_hidden=False)
 
         for article in articles:
-            comments = article.comments.filter(is_hidden=False)
+            comments = []  # 评论功能已移除
 
             # Markdown -> HTML
             allowed_tags = bleach.sanitizer.ALLOWED_TAGS.union({
