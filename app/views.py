@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.core.cache import cache
-from .models import Article, Tag, Comment, BoardMessage
+from .models import Article, Tag
 import markdown as md
 import bleach
 import hashlib
