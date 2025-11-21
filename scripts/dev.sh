@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 FRONTEND_DIR="$ROOT_DIR/frontend"
 
-DJANGO_PORT=7011
+DJANGO_PORT=8000
 VITE_PORT=7010
 
 function kill_port() {
