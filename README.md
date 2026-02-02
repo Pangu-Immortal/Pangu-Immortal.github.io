@@ -8,6 +8,10 @@
 
 </div>
 
+<p align="center">
+  <b>⭐ 点击 <a href="https://github.com/Pangu-Immortal/Pangu-Immortal.github.io">Star</a>，关注不迷路 ⭐</b>
+</p>
+
 > Django + GitHub Pages 静态博客系统
 
 [![Django](https://img.shields.io/badge/Django-5.0-green.svg)](https://www.djangoproject.com/)
