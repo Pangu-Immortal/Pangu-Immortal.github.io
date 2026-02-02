@@ -1,3 +1,5 @@
+![访客统计](https://count.getloli.com/get/@Pangu-Immortal.github.io?theme=rule34)
+
 # 盘古大仙洞府
 
 > Django + GitHub Pages 静态博客系统
@@ -414,3 +416,24 @@ MIT License
 ---
 
 **⭐ 如果觉得不错，请给个 Star！**
+
+---
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Pangu-Immortal/Pangu-Immortal.github.io&type=Date)](https://star-history.com/#Pangu-Immortal/Pangu-Immortal.github.io&Date)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
