@@ -1,4 +1,9 @@
-![访客统计](https://count.getloli.com/get/@Pangu-Immortal.github.io?theme=rule34)
+<div align="center">
+
+![萌萌计数器](https://count.getloli.com/get/@Pangu-Immortal.github.io?theme=rule34)
+
+</div>
+
 
 # 盘古大仙洞府
 
@@ -432,8 +437,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
